@@ -1,2 +1,2 @@
-docop
+docopt
 scikit-learn
