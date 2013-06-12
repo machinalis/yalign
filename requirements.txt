@@ -1,2 +1,3 @@
 docopt
 scikit-learn
+simpleai
