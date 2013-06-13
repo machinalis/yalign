@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from nwalign import AlignSequences
+from yalign.nwalign import AlignSequences
 
 
 class BaseTestAlignSequences(object):
@@ -38,62 +38,45 @@ class TestAlignSequences_EditDistance(BaseTestAlignSequences, unittest.TestCase)
         else:
             return 1
 
+    def test_known_examples_1(self):
+        """
+        Example taken from http://en.wikipedia.org/wiki/Levenshtein_distance
+        """
+        align = AlignSequences("kitten", "sitting",
+                               self.weight, self.gap_penalty, minimize=True)
+        score = sum(cost for _, _, cost in align)
+        self.assertEqual(score, 3)
+
+
+    def test_known_examples_2(self):
+        """
+        Example taken from http://en.wikipedia.org/wiki/Levenshtein_distance
+        """
+        align = AlignSequences("Saturday", "Sunday",
+                               self.weight, self.gap_penalty, minimize=True)
+        score = sum(cost for _, _, cost in align)
+        self.assertEqual(score, 3)
+
+
+class TestAlignSequences_Sintetic(BaseTestAlignSequences, unittest.TestCase):
+    xs = "AabbbaabaAbbabaAA"
+    ys = "BBB"
+    gap_penalty = 0
+
+    def weight(self, a, b):
+        if a == "A" and b == "B":
+            return 1
+        return -1
+
+    def test_all_As_and_Bs__are_aligned(self):
+        align = AlignSequences(self.xs, self.ys, self.weight, self.gap_penalty)
+        for i, j, cost in align:
+            if i is None or j is None:
+                continue
+            self.assertEqual(self.xs[i], "A")
+            self.assertEqual(self.ys[j], "B")
+
+
 
 if __name__ == "__main__":
     unittest.main()
-
-
-"""
-COMPLETE!!!
-
-def _edit_cost(a, b):
-    if a == b:
-        return 0
-    return 10
-
-
-def edit_distance(xs, ys):
-    return AlignSequences(xs, ys, _edit_cost)
-
-
-_dna_distance = {"A": {"A": 10, "G": -1, "C": -3, "T": -4},
-    "G": {"A": -1, "G": 7, "C": -5, "T": -3},
-    "C": {"A": -3, "G": -5, "C": 9, "T": 0},
-    "T": {"A": -4, "G": -3, "C": 0, "T": 8},
-}
-
-
-_test_distance = {"A": {"A": 10, "G": -1, "C": -3, "T": -4},
-    "G": {"A": -1, "G": -1, "C": -5, "T": -3},
-    "C": {"A": -3, "G": -5, "C": -1, "T": -2},
-    "T": {"A": -4, "G": -3, "C": -2, "T": -1},
-}
-
-
-def dna_align(xs, ys):
-    return AlignSequences(xs, ys, lambda a, b: -_dna_distance[a][b], 5)
-
-
-def pretty_align(xs, ys, align):
-    sx = []
-    sy = []
-    for i, j, cost in align:
-        if i is None:
-            sx.append("-")
-        elif i != len(xs):
-            sx.append(xs[i])
-        if j is None:
-            sy.append("-")
-        elif j != len(ys):
-            sy.append(ys[j])
-    return "".join(sx), "".join(sy)
-
-
-if __name__ == "__main__":
-    xs = "AGACTAGTTAC"
-    ys = "CGAGACGT"
-    a = dna_align(xs, ys)
-    print a
-    print "{}\n{}".format(*pretty_align(xs, ys, a))
-    print -sum(cost for _, _, cost in a)
-"""
