@@ -26,7 +26,7 @@ class TestWordScore(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.score_word("thisnot", u"butthis")
         score = self.score_word(u"ŧ~]ĸ\æßđæ@~½\ŋĸ}ß", u"ßøþł€ŧ€")
-        self.assertEqual(score, 0.0)
+        self.assertEqual(score, 1.0)
 
     def test_not_spaces(self):
         with self.assertRaises(ValueError):
@@ -36,27 +36,27 @@ class TestWordScore(unittest.TestCase):
 
     def test_non_existing(self):
         score = self.score_word(u"goisdjgoi", u"ijgoihpmf3o")
-        self.assertEqual(score, 0.0)
+        self.assertEqual(score, 1.0)
 
     def test_existing(self):
         score = self.score_word(u"house", u"casa")
-        self.assertEqual(score, 1.0)
+        self.assertEqual(score, 0.0)
         score = self.score_word(u"you", u"vos")
-        self.assertEqual(score, 0.75)
+        self.assertEqual(score, 0.25)
 
     def test_non_existing_equal_fields(self):
         score = self.score_word(u"Machinalis", u"Machinalis")
-        self.assertEqual(score, 1.0)
+        self.assertEqual(score, 0.0)
         score = self.score_word(u"valar", u"valar")
-        self.assertEqual(score, 1.0)
+        self.assertEqual(score, 0.0)
         score = self.score_word(u"morghulis", u"morghulis")
-        self.assertEqual(score, 1.0)
+        self.assertEqual(score, 0.0)
 
     def test_existing_equal_fields(self):
         score = self.score_word(u"house", u"house")
-        self.assertEqual(score, 0.0)
+        self.assertEqual(score, 1.0)
         score = self.score_word(u"you", u"you")
-        self.assertEqual(score, 0.0)
+        self.assertEqual(score, 1.0)
 
     def test_case_insensitive(self):
         score1 = self.score_word(u"house", u"casa")
