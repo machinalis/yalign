@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Generate alignment and non alignment samples from a parallel corpus.
+
+Usage:
+    generate_samples <parallel-corpus> <outfile>
+"""
+
+from random import choice, randint
+from itertools import islice
+from docopt import docopt
+from yalign.scramble import shuffle, remove
+import csv
+
+
+def read_lines(f, n):
+    N = n * 2
+    xs = list(x.strip() for x in islice(f, N))
+    src = enumerate(xs[0:N:2])
+    tgt = enumerate(xs[1:N:2])
+    return list(src), list(tgt)
+
+
+def samples(source):
+    n = randint(100, 200)
+    src, tgt = read_lines(source, n)
+    while src:
+        src = scramble(src)
+        tgt = scramble(tgt)
+        for sample in alignments(n, src, tgt):
+            yield sample
+        for sample in non_alignments(src, tgt):
+            yield sample
+        n = randint(100, 200)
+        src, tgt = read_lines(source, n)
+
+
+def alignments(n, src, tgt):
+    src_dict = dict(src)
+    tgt_dict = dict(tgt)
+    for idx in xrange(n):
+        a = src_dict.get(idx, None)
+        b = tgt_dict.get(idx, None)
+        if a and b:
+            yield 1, len(src), src.index((idx, a)), a, len(tgt), tgt.index((idx, b)), b
+
+
+def non_alignments(src, tgt):
+    N = max(len(src), len(tgt))
+    for idx in xrange(N):
+        a, b = choice(src), choice(tgt)
+        if not a[0] == b[0]:
+            yield 0, len(src), src.index(a), a[1], len(tgt), tgt.index(b), b[1]
+
+
+def scramble(xs):
+    xss = []
+    n = 0
+    r = randint(5, 10)
+    x = xs[0:r]
+    while x:
+        n = n + r
+        remove(x, randint(0, 2))
+        shuffle(x, randint(1, 3))
+        xss += x
+        r = randint(5, 10)
+        x = xs[n:n + r]
+    return xss
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    parallel_corpus = open(args["<parallel-corpus>"])
+    outfile = csv.writer(open(args["<outfile>"], "w"), quoting=csv.QUOTE_NONNUMERIC)
+    outfile.writerow(["aligned", "src N", "src idx", "src", "tgt N", "tgt idx", "tgt"])
+    for x in samples(parallel_corpus):
+        outfile.writerow(x)
