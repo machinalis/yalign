@@ -136,6 +136,9 @@ class ScoreWord(object):
         """
         Scores a word to word alignment using the translation
         probability.
+        Scores range from 0 to 1.
+        0 means that the words ARE likely translations of each other.
+        1 means that the words AREN'T likely translations of each other.
         """
 
         if not isinstance(src, unicode) or not isinstance(tgt, unicode):
@@ -146,15 +149,11 @@ class ScoreWord(object):
         src = src.lower()
         tgt = tgt.lower()
 
-        if src == tgt:
-            if src in self.translations:
-                return self.translations[src][tgt]
-            else:
-                return 1.0
-        else:
-            if src not in self.translations:
-                return 0.0
-            return self.translations[src].get(tgt, 0.0)
+        if src not in self.translations and src == tgt:
+            return 0.0
+        elif src not in self.translations:
+            return 1.0
+        return 1.0 - self.translations[src][tgt]
 
 
 if __name__ == "__main__":
