@@ -65,6 +65,16 @@ class TestWordScore(unittest.TestCase):
         self.assertEqual(score1, score2)
         self.assertEqual(score2, score3)
 
+    def test_boundaries(self):
+        score1 = self.score_word(u"house", u"casa")
+        score2 = self.score_word(u"Tyrion", u"Lanister")
+        score3 = self.score_word(u"the", u"cake")
+        min_bound = self.score_word.min_bound
+        max_bound = self.score_word.max_bound
+        self.assertTrue(min_bound <= score1 <= max_bound)
+        self.assertTrue(min_bound <= score2 <= max_bound)
+        self.assertTrue(min_bound <= score3 <= max_bound)
+
 
 class TestCompilation(unittest.TestCase):
     def test_compilation(self):
