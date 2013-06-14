@@ -131,6 +131,8 @@ def save_translation_dictionary(translations, outfile):
 class ScoreWord(object):
     def __init__(self, filepath):
         self.translations = pickle.load(open(filepath))
+        self.min_bound = 0.0
+        self.max_bound = 1.0
 
     def __call__(self, src, tgt):
         """
