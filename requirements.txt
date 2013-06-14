@@ -1,4 +1,6 @@
+scipy
+numpy
 docopt
-scikit-learn
 simpleai
 csv
+scikit-learn
