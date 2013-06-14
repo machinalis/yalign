@@ -5,8 +5,8 @@
 Trains the TU Classifier to score the alignment of two sentences
 
 Usage:
-    tu_score [options] score <source> <target> <distance>
-    tu_score [options] train <dataset>
+    tu_score [options] score <filepath> <source> <target> <distance>
+    tu_score [options] train <dataset> <word_scores> <outfile>
 
 Options:
   -e --eval        Evaluates a training using 10-fold
@@ -19,14 +19,10 @@ import math
 from docopt import docopt
 
 from svm import SVMClassifier
-from word_score import score_word
+from word_score import ScoreWord
 from nwalign import AlignSequences
-from simpleai.machine_learning import is_attribute, Attribute
+from simpleai.machine_learning import is_attribute
 from simpleai.machine_learning import ClassificationProblem
-
-
-CLASSIFIER_FILEPATH = "sentence_classifier.pickle"
-__classifier = None
 
 
 class TU(object):
@@ -35,6 +31,14 @@ class TU(object):
         Creates a Translation Unit with source, target, the
         distance between this two and if it's aligned or not.
         """
+
+        if not isinstance(src, unicode) or not isinstance(tgt, unicode):
+            raise ValueError("Source and target must be unicode")
+        if not src or not tgt:
+            raise ValueError("Source or target empty")
+        if not isinstance(distance, float) or not 0.0 <= distance <= 1.0:
+            raise ValueError("Invalid distance: {} ({})".format(distance))
+
         self.src = src
         self.tgt = tgt
         self.distance = distance
@@ -42,9 +46,13 @@ class TU(object):
 
 
 class SentenceProblem(ClassificationProblem):
+    def __init__(self, word_score_filepath):
+        super(SentenceProblem, self).__init__()
+        self.score_word = ScoreWord(word_score_filepath)
+
     @is_attribute
     def word_score(self, tu):
-        alignment = AlignSequences(tu.tgt.split(), tu.src.split(), score_word)
+        alignment = AlignSequences(tu.tgt.split(), tu.src.split(), self.score_word)
         word_score = [x[2] for x in alignment]
         return abs(sum(word_score) / max(len(tu.src), len(tu.tgt)))
 
@@ -60,23 +68,6 @@ class SentenceProblem(ClassificationProblem):
 
     def target(self, tu):
         return tu.aligned
-
-    def __getstate__(self):
-        # A quick and dirty fix to allow pickle-ability
-        attributes = [a for a in self.attributes
-                      if not hasattr(a.function, "is_attribute")]
-        return {"attributes": attributes}
-
-    def __setstate__(self, d):
-        # A quick and dirty fix to allow pickle-ability
-        attrs = []
-        for name in dir(self):
-            method = getattr(self, name)
-            if hasattr(method, "is_attribute"):
-                attr = Attribute(method, method.name)
-                attrs.append(attr)
-        self.attributes = attrs + d["attributes"]
-        self.attributes.sort(key=lambda attr: attr.name)
 
 
 def normalization(x, unit=2):
@@ -101,8 +92,8 @@ def parse_training_data(dataset_filepath):
             labels = dict((x, elem.index(x)) for x in elem)
             continue
 
-        src = elem[labels["src"]]
-        tgt = elem[labels["tgt"]]
+        src = elem[labels["src"]].decode("utf-8")
+        tgt = elem[labels["tgt"]].decode("utf-8")
         src_pos = float(elem[labels["src idx"]]) / float(elem[labels["src N"]])
         tgt_pos = float(elem[labels["tgt idx"]]) / float(elem[labels["tgt N"]])
         dist = abs(src_pos - tgt_pos)
@@ -110,10 +101,10 @@ def parse_training_data(dataset_filepath):
         yield TU(src, tgt, dist, aligned)
 
 
-def train_and_save_classifier(dataset_filepath, out_filepath):
+def train_and_save_classifier(dataset_filepath, word_scores, out_filepath):
     """
     Trains the classifier using the information of `dataset_filepath`
-    and saves it to `out_filepath`
+    and saves it to `out_filepath`.
 
     The information in `dataset_filepath` must be in YAML format
     and must contain the following data:
@@ -124,18 +115,18 @@ def train_and_save_classifier(dataset_filepath, out_filepath):
     """
 
     training_data = parse_training_data(dataset_filepath)
-    classifier = SVMClassifier(training_data, SentenceProblem())
+    classifier = SVMClassifier(training_data, SentenceProblem(word_scores))
     classifier.save(out_filepath)
 
 
-class ScoreSentence(object):
-    def __init__(self):
-        self.classifier = SVMClassifier.load(CLASSIFIER_FILEPATH)
+class ScoreTU(object):
+    def __init__(self, filepath):
+        self.classifier = SVMClassifier.load(filepath)
         self.dimention = len(self.classifier.problem.attributes)
         self.min_bound = 0
         self.max_bound = 2 * self.dimention
 
-    def __call__(self, ut):
+    def __call__(self, tu):
         """
         Returns the score of a sentence.
         The result will always be a in (self.min_bound, self.max_bound)
@@ -154,19 +145,22 @@ if __name__ == "__main__":
 
     if args["score"]:
         tu = TU(args["<source>"], args["<target>"], float(args["<distance>"]))
-        print ScoreSentence(tu)
+        filepath = args["<filepath>"]
+        classifier = ScoreTU(filepath)
+        print classifier(tu)
     elif args["train"]:
         dataset_filepath = args["<dataset>"]
-        out_filepath = CLASSIFIER_FILEPATH
+        out_filepath = args["<outfile>"]
+        word_scores = args["<word_scores>"]
 
         if args["--eval"]:
             from simpleai.machine_learning import kfold
             training_data = parse_training_data(dataset_filepath)
-            score = kfold(training_data, SentenceProblem(), SVMClassifier)
+            score = kfold(training_data, SentenceProblem(word_scores), SVMClassifier)
             message = "Classifier precision {:.3f}% (10-fold crossvalidation)"
             print >> sys.stderr, message.format(score * 100)
             exit(0)
 
         print >> sys.stderr, "Starting training"
-        train_and_save_classifier(dataset_filepath, out_filepath)
+        train_and_save_classifier(dataset_filepath, word_scores, out_filepath)
         print >> sys.stderr, "Training done"
