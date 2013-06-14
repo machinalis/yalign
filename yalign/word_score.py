@@ -5,7 +5,7 @@
 Compiles the necesary data to compute the word score for the aligner
 
 Usage:
-    something [options] <input_file> <output_file>
+    word_score [options] <input_file> <output_file>
 
 Options:
   -h --help        Show this screen.
@@ -28,7 +28,6 @@ except ImportError:
 
 logging.basicConfig()
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.DEBUG)
 
 
 def _open_phrasetable(filepath):
@@ -139,11 +138,16 @@ class ScoreWord(object):
         probability.
         """
 
+        if not isinstance(src, unicode) or not isinstance(tgt, unicode):
+            raise ValueError("Source and target words must be unicode")
+        if src.count(u" ") or tgt.count(u" "):
+            raise ValueError("Words cannot have spaces")
+
         src = src.lower()
         tgt = tgt.lower()
 
         if src == tgt:
-            if src in self.translations and tgt in self.translations[src]:
+            if src in self.translations:
                 return self.translations[src][tgt]
             else:
                 return 1.0
@@ -154,6 +158,7 @@ class ScoreWord(object):
 
 
 if __name__ == "__main__":
+    logger.setLevel(logging.DEBUG)
     args = docopt(__doc__)
 
     input_filepath = args["<input_file>"]
