@@ -128,24 +128,25 @@ def train_and_save_classifier(dataset_filepath, out_filepath):
     classifier.save(out_filepath)
 
 
-def get_or_load_classifier():
-    """
-    Loads the classifier to the global variable
-    or returns a previous loaded one.
-    """
+class ScoreSentence(object):
+    def __init__(self):
+        self.classifier = SVMClassifier.load(CLASSIFIER_FILEPATH)
+        self.dimention = len(self.classifier.problem.attributes)
+        self.min_bound = 0
+        self.max_bound = 2 * self.dimention
 
-    global __classifier
-    if __classifier is None:
-        __classifier = SVMClassifier.load(CLASSIFIER_FILEPATH)
-    return __classifier
+    def __call__(self, ut):
+        """
+        Returns the score of a sentence.
+        The result will always be a in (self.min_bound, self.max_bound)
+        """
+        score = self.classifier.score(tu)
+        constant = math.sqrt(self.dimention)
+        # We add sqrt(n) to avoid negative numbers.
+        result = score + constant
 
-
-def score_sentence(tu):
-    """
-    Returns the score of a sentence.
-    """
-    classifier = get_or_load_classifier()
-    return classifier.score(tu)
+        assert self.min_bound <= result <= self.max_bound
+        return result
 
 
 if __name__ == "__main__":
@@ -153,7 +154,7 @@ if __name__ == "__main__":
 
     if args["score"]:
         tu = TU(args["<source>"], args["<target>"], float(args["<distance>"]))
-        print score_sentence(tu)
+        print ScoreSentence(tu)
     elif args["train"]:
         dataset_filepath = args["<dataset>"]
         out_filepath = CLASSIFIER_FILEPATH
