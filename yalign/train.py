@@ -75,7 +75,9 @@ def alignments(src, tgt):
 def aligned_sentences(src, tgt):
     src_dict = dict(src)
     tgt_dict = dict(tgt)
-    for idx in xrange(2 * len(src)):
+    indexes = list(src_dict.keys())
+    indexes.sort()
+    for idx in indexes:
         a = src_dict.get(idx, None)
         b = tgt_dict.get(idx, None)
         if a and b:
