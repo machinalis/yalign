@@ -19,7 +19,6 @@ import tempfile
 import subprocess
 from docopt import docopt
 from collections import defaultdict
-
 try:
     import cPickle as pickle
 except ImportError:
