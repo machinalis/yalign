@@ -52,7 +52,8 @@ class SentenceProblem(ClassificationProblem):
 
     @is_attribute
     def word_score(self, tu):
-        alignment = AlignSequences(tu.tgt.split(), tu.src.split(), self.score_word)
+        alignment = AlignSequences(tu.tgt.split(), tu.src.split(),
+                                   self.score_word)
         word_score = [x[2] for x in alignment]
         return abs(sum(word_score) / max(len(tu.src), len(tu.tgt)))
 
@@ -65,6 +66,18 @@ class SentenceProblem(ClassificationProblem):
         src_words = len(tu.src.split())
         tgt_words = len(tu.tgt.split())
         return normalization(abs(src_words - tgt_words))
+
+    @is_attribute
+    def uppercase_words_difference(self, tu):
+        up_source_words = len([x for x in tu.src.split() if x.isupper()])
+        up_target_words = len([x for x in tu.src.split() if x.isupper()])
+        return normalization(abs(up_source_words - up_target_words))
+
+    @is_attribute
+    def capitalized_words_difference(self, tu):
+        cap_source_words = len([x for x in tu.src.split() if x.istitle()])
+        cap_target_words = len([x for x in tu.src.split() if x.istitle()])
+        return normalization(abs(cap_source_words - cap_target_words))
 
     def target(self, tu):
         return tu.aligned
@@ -156,7 +169,8 @@ if __name__ == "__main__":
         if args["--eval"]:
             from simpleai.machine_learning import kfold
             training_data = parse_training_data(dataset_filepath)
-            score = kfold(training_data, SentenceProblem(word_scores), SVMClassifier)
+            problem = SentenceProblem(word_scores)
+            score = kfold(training_data, problem, SVMClassifier)
             message = "Classifier precision {:.3f}% (10-fold crossvalidation)"
             print >> sys.stderr, message.format(score * 100)
             exit(0)
