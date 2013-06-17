@@ -5,6 +5,8 @@
 Abstraction of a Translation Unit
 """
 
+from nltk.tokenize import word_tokenize
+
 
 class TU(object):
     def __init__(self, src, tgt, distance, aligned=None):
@@ -24,5 +26,5 @@ class TU(object):
         self.tgt = tgt
         self.distance = distance
         self.aligned = aligned
-
-
+        self.source_words = word_tokenize(src)
+        self.target_words = word_tokenize(tgt)

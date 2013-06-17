@@ -19,8 +19,8 @@ class SentenceProblem(ClassificationProblem):
 
     @is_attribute
     def word_score(self, tu):
-        src_words = tu.tgt.lower().split()
-        tgt_words = tu.src.lower().split()
+        src_words = [x.lower() for x in tu.source_words]
+        tgt_words = [x.lower() for x in tu.target_words]
         gap = 0.5  # If gap > 0.5 then the returned value could be > 1.
         alignment = AlignSequences(src_words, tgt_words, self.score_word, gap)
         word_score = [x[2] for x in alignment]
