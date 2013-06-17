@@ -1,41 +1,51 @@
 from yalign.train import generate_documents, alignments
 from yalign.evaluation import F_score
 from yalign.nwalign import AlignSequences
-import numpy as np
-from scipy.optimize import anneal
 from functools import partial
 from yalign.tu import TU
+from random import uniform
 
 
-def optimize(parallel_corpus, scorer):
-    x = np.array([0.8])
+def run_random_sample(parallel_corpus, scorer, n):
     weight_fn = partial(weight, scorer)
     score_fn = partial(align, documents(parallel_corpus), weight_fn)
-    print anneal(score_fn, x, full_output=True)
+    return random_sampler(n, score_fn)
+
+
+def random_sampler(n, fn):
+    best_result = (0, 0, 0)
+    for i in xrange(n):
+        gap_penalty = uniform(0, 0.5)
+        threshold = uniform(0, 1)
+        score = fn(gap_penalty, threshold)
+        if score > best_result[0]:
+            best_result = score, gap_penalty, threshold
+        print best_result
+    return best_result
 
 
 def weight(scorer, a, b):
     distance = abs(a[0] - b[0])
     tu = TU(a[2], b[2], distance)
-    return scorer(tu)[0][0]
+    score = scorer(tu)[0][0]
+    return score
+
+
+def items(values):
+    return list([((idx + 1) / float(len(values)), idx, x[1])
+                for idx, x in enumerate(values)])
 
 
 def best_alignments(threshold, gap_penalty, src, tgt, w):
-    src = list([((idx + 1) / float(len(src)), idx, x[1])
-                for idx, x in enumerate(src)])
-    tgt = list([((idx + 1) / float(len(tgt)), idx, x[1])
-                for idx, x in enumerate(tgt)])
-    print len(src), len(tgt)
-    align = AlignSequences(src, tgt, w, gap_penalty, minimize=True)
-    return list([(a, b) for a, b, c in align if threshold > 0])
+    align = AlignSequences(items(src), items(tgt), w, gap_penalty=gap_penalty)
+    return list([(a, b) for a, b, c in align if c < threshold])
 
 
-def align(reader, weight_fn, gap_penalty):
+def align(reader, weight_fn, gap_penalty, threshold):
     src, tgt = reader.next()
-    xs = best_alignments(0.5, gap_penalty, src, tgt, weight_fn)
+    xs = best_alignments(threshold, gap_penalty, src, tgt, weight_fn)
     ys = list(alignments(src, tgt))
     score = F_score(xs, ys)[0]
-    print gap_penalty, len(src), len(tgt), score
     return score
 
 
@@ -49,12 +59,4 @@ if __name__ == "__main__":
     from yalign.weightfunctions import TUScore
     parallel_corpus = open('../cc/motorola.en-es')
     scorer = TUScore('data/svm.pickle')
-    weight_fn = partial(weight, scorer)
-    docs = documents(parallel_corpus)
-    src, tgt = docs.next()
-    xs = best_alignments(0.5, 1, src, tgt, weight_fn)
-    ys = list(alignments(src,tgt))
-    score = F_score(xs, ys)
-    print len(xs), xs
-    print len(ys), ys
-    print score
+    run_random_sample(parallel_corpus, scorer, 1000)
