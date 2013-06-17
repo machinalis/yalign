@@ -21,7 +21,8 @@ class SentenceProblem(ClassificationProblem):
     def word_score(self, tu):
         src_words = tu.tgt.lower().split()
         tgt_words = tu.src.lower().split()
-        alignment = AlignSequences(src_words, tgt_words, self.score_word, 0.49)
+        gap = 0.5  # If gap > 0.5 then the returned value could be > 1.
+        alignment = AlignSequences(src_words, tgt_words, self.score_word, gap)
         word_score = [x[2] for x in alignment]
         return abs(sum(word_score) / max(len(tu.src), len(tu.tgt)))
 
