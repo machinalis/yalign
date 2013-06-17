@@ -33,6 +33,8 @@ class SVMClassifier(Classifier):
     def vectorize(self, data):
         vector = [attr(data) for attr in self.attributes]
         vector = numpy.array(vector)
+        assert(vector.all() >= 0)
+        assert(vector.all() <= 1)
         return vector
 
 
