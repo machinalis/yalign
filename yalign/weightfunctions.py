@@ -40,6 +40,8 @@ class WordScore(object):
             return 0.0
         elif src not in self.translations:
             return 1.0
+        elif tgt not in self.translations[src]:
+            return 1.0
         return 1.0 - self.translations[src][tgt]
 
 
