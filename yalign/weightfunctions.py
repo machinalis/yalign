@@ -46,9 +46,8 @@ class WordScore(object):
 class TUScore(object):
     def __init__(self, filepath):
         self.classifier = SVMClassifier.load(filepath)
-        self.dimention = len(self.classifier.problem.attributes)
-        self.min_bound = 0
-        self.max_bound = 2 * math.sqrt(self.dimention)
+        self.min_bound = 0.0
+        self.max_bound = 1.0
 
     def __call__(self, tu):
         """
@@ -56,9 +55,13 @@ class TUScore(object):
         The result will always be a in (self.min_bound, self.max_bound)
         """
         score = self.classifier.score(tu)
-        constant = math.sqrt(self.dimention)
-        # We add sqrt(n) to avoid negative numbers.
-        result = score + constant
-
+        result = logistic_function(score * 3)
         assert self.min_bound <= result <= self.max_bound
         return result
+
+
+def logistic_function(x):
+    """
+    See: http://en.wikipedia.org/wiki/Logistic_function
+    """
+    return 1 / (1 + math.e ** (-x))

@@ -31,34 +31,30 @@ class SentenceProblem(ClassificationProblem):
 
     @is_attribute
     def word_length_difference(self, tu):
-        src_words = len(tu.src.split())
-        tgt_words = len(tu.tgt.split())
-        return normalization(abs(src_words - tgt_words))
+        a = len(tu.src.split())
+        b = len(tu.tgt.split())
+        return ratio(a, b)
 
     @is_attribute
     def uppercase_words_difference(self, tu):
-        up_source_words = len([x for x in tu.src.split() if x.isupper()])
-        up_target_words = len([x for x in tu.src.split() if x.isupper()])
-        return normalization(abs(up_source_words - up_target_words))
+        a = len([x for x in tu.src.split() if x.isupper()])
+        b = len([x for x in tu.tgt.split() if x.isupper()])
+        return ratio(a, b)
 
     @is_attribute
     def capitalized_words_difference(self, tu):
-        cap_source_words = len([x for x in tu.src.split() if x.istitle()])
-        cap_target_words = len([x for x in tu.src.split() if x.istitle()])
-        return normalization(abs(cap_source_words - cap_target_words))
+        a = len([x for x in tu.src.split() if x.istitle()])
+        b = len([x for x in tu.tgt.split() if x.istitle()])
+        return ratio(a, b)
 
     def target(self, tu):
         return tu.aligned
 
 
-def normalization(x, unit=2):
-    """
-    Maps positive real numbers to [0, 1).
-    Strictly increasing function, continuous function.
-    """
-    x = math.log(x + 1.0, unit)
-    x = 1.0 / (x + 1.0)
-    return 1.0 - x
+def ratio(a, b):
+    if max(a, b) == 0:
+        return 1.0
+    return min(a, b) / float(max(a, b))
 
 
 def parse_training_data(dataset_filepath):
