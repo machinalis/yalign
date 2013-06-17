@@ -52,8 +52,9 @@ class SentenceProblem(ClassificationProblem):
 
     @is_attribute
     def word_score(self, tu):
-        alignment = AlignSequences(tu.tgt.split(), tu.src.split(),
-                                   self.score_word)
+        src_words = tu.tgt.lower().split()
+        tgt_words = tu.src.lower().split()
+        alignment = AlignSequences(src_words, tgt_words, self.score_word, 0.49)
         word_score = [x[2] for x in alignment]
         return abs(sum(word_score) / max(len(tu.src), len(tu.tgt)))
 
@@ -137,7 +138,7 @@ class ScoreTU(object):
         self.classifier = SVMClassifier.load(filepath)
         self.dimention = len(self.classifier.problem.attributes)
         self.min_bound = 0
-        self.max_bound = 2 * self.dimention
+        self.max_bound = 2 * math.sqrt(self.dimention)
 
     def __call__(self, tu):
         """
