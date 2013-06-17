@@ -1,54 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-"""
-Trains the TU Classifier to score the alignment of two sentences
-
-Usage:
-    tu_score [options] score <filepath> <source> <target> <distance>
-    tu_score [options] train <dataset> <word_scores> <outfile>
-
-Options:
-  -e --eval        Evaluates a training using 10-fold
-  -h --help        Show this screen.
-"""
-
-import sys
 import csv
 import math
-from docopt import docopt
-
-from svm import SVMClassifier
-from word_score import ScoreWord
-from nwalign import AlignSequences
 from simpleai.machine_learning import is_attribute
 from simpleai.machine_learning import ClassificationProblem
 
-
-class TU(object):
-    def __init__(self, src, tgt, distance, aligned=None):
-        """
-        Creates a Translation Unit with source, target, the
-        distance between this two and if it's aligned or not.
-        """
-
-        if not isinstance(src, unicode) or not isinstance(tgt, unicode):
-            raise ValueError("Source and target must be unicode")
-        if not src or not tgt:
-            raise ValueError("Source or target empty")
-        if not isinstance(distance, float) or not 0.0 <= distance <= 1.0:
-            raise ValueError("Invalid distance: {} ({})".format(distance))
-
-        self.src = src
-        self.tgt = tgt
-        self.distance = distance
-        self.aligned = aligned
+from yalign.tu import TU
+from yalign.svm import SVMClassifier
+from yalign.nwalign import AlignSequences
+from yalign.weightfunctions import WordScore
 
 
 class SentenceProblem(ClassificationProblem):
     def __init__(self, word_score_filepath):
         super(SentenceProblem, self).__init__()
-        self.score_word = ScoreWord(word_score_filepath)
+        self.score_word = WordScore(word_score_filepath)
 
     @is_attribute
     def word_score(self, tu):
@@ -131,51 +98,3 @@ def train_and_save_classifier(dataset_filepath, word_scores, out_filepath):
     training_data = parse_training_data(dataset_filepath)
     classifier = SVMClassifier(training_data, SentenceProblem(word_scores))
     classifier.save(out_filepath)
-
-
-class ScoreTU(object):
-    def __init__(self, filepath):
-        self.classifier = SVMClassifier.load(filepath)
-        self.dimention = len(self.classifier.problem.attributes)
-        self.min_bound = 0
-        self.max_bound = 2 * math.sqrt(self.dimention)
-
-    def __call__(self, tu):
-        """
-        Returns the score of a sentence.
-        The result will always be a in (self.min_bound, self.max_bound)
-        """
-        score = self.classifier.score(tu)
-        constant = math.sqrt(self.dimention)
-        # We add sqrt(n) to avoid negative numbers.
-        result = score + constant
-
-        assert self.min_bound <= result <= self.max_bound
-        return result
-
-
-if __name__ == "__main__":
-    args = docopt(__doc__)
-
-    if args["score"]:
-        tu = TU(args["<source>"], args["<target>"], float(args["<distance>"]))
-        filepath = args["<filepath>"]
-        classifier = ScoreTU(filepath)
-        print classifier(tu)
-    elif args["train"]:
-        dataset_filepath = args["<dataset>"]
-        out_filepath = args["<outfile>"]
-        word_scores = args["<word_scores>"]
-
-        if args["--eval"]:
-            from simpleai.machine_learning import kfold
-            training_data = parse_training_data(dataset_filepath)
-            problem = SentenceProblem(word_scores)
-            score = kfold(training_data, problem, SVMClassifier)
-            message = "Classifier precision {:.3f}% (10-fold crossvalidation)"
-            print >> sys.stderr, message.format(score * 100)
-            exit(0)
-
-        print >> sys.stderr, "Starting training"
-        train_and_save_classifier(dataset_filepath, word_scores, out_filepath)
-        print >> sys.stderr, "Training done"

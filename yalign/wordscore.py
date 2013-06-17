@@ -1,32 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-"""
-Compiles the necesary data to compute the word score for the aligner
-
-Usage:
-    word_score [options] <input_file> <output_file>
-
-Options:
-  -h --help        Show this screen.
-"""
-
 import os
 import gzip
 import codecs
-import logging
 import tempfile
 import subprocess
-from docopt import docopt
 from collections import defaultdict
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
-
-logging.basicConfig()
-logger = logging.getLogger(__file__)
 
 
 def _open_phrasetable(filepath):
@@ -59,13 +43,10 @@ def _pre_filter(filepath):
     filter_cmdline = "grep -E '^\S+\s\|\|\|\s\S+\s\|\|\|'"
     cmdline = "{read} | {filter}".format(read=read_cmdline,
                                          filter=filter_cmdline)
-
-    logger.info("About to pre filter:\n{}".format(cmdline))
     status = subprocess.call(cmdline,
                              stdout=outfile,
                              stderr=errfile,
                              shell=True)
-    logger.info("Pre filter finish")
 
     if status != 0:
         message = "Error precompiling: program returned {}.\n" \
@@ -84,7 +65,6 @@ def filter_phrasetable(in_filepath):
         * low word count
     """
 
-    logger.info("Starting filter process")
     in_filepath = _pre_filter(in_filepath)
 
     with _open_phrasetable(in_filepath) as filehandler:
@@ -125,47 +105,3 @@ def save_translation_dictionary(translations, outfile):
         result[src][tgt] = prob
 
     pickle.dump(dict(result), open(outfile, "w"))
-
-
-class ScoreWord(object):
-    def __init__(self, filepath):
-        self.translations = pickle.load(open(filepath))
-        self.min_bound = 0.0
-        self.max_bound = 1.0
-
-    def __call__(self, src, tgt):
-        """
-        Scores a word to word alignment using the translation
-        probability.
-        Scores range from 0 to 1.
-        0 means that the words ARE likely translations of each other.
-        1 means that the words AREN'T likely translations of each other.
-        """
-
-        if not isinstance(src, unicode) or not isinstance(tgt, unicode):
-            raise ValueError("Source and target words must be unicode")
-        if src.count(u" ") or tgt.count(u" "):
-            raise ValueError("Words cannot have spaces")
-
-        src = src.lower()
-        tgt = tgt.lower()
-
-        if src not in self.translations and src == tgt:
-            return 0.0
-        elif src not in self.translations:
-            return 1.0
-        return 1.0 - self.translations[src][tgt]
-
-
-if __name__ == "__main__":
-    logger.setLevel(logging.DEBUG)
-    args = docopt(__doc__)
-
-    input_filepath = args["<input_file>"]
-    output_filepath = args["<output_file>"]
-
-    try:
-        translations_iterator = filter_phrasetable(input_filepath)
-        save_translation_dictionary(translations_iterator, output_filepath)
-    except Exception as error:
-        exit("Error: {}".format(error))

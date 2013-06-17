@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Compiles the necesary data to compute the word score for the aligner
+
+Usage:
+    word_score [options] <input_file> <output_file>
+
+Options:
+  -h --help        Show this screen.
+"""
+
+from docopt import docopt
+from yalign import wordscore
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    input_filepath = args["<input_file>"]
+    output_filepath = args["<output_file>"]
+
+    try:
+        translations_iterator = wordscore.filter_phrasetable(input_filepath)
+        wordscore.save_translation_dictionary(translations_iterator, output_filepath)
+    except Exception as error:
+        exit("Error: {}".format(error))
