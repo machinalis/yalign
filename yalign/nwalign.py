@@ -9,6 +9,8 @@ class NWSequenceAlignmentSearchProblem(SearchProblem):
         self.xs = xs
         self.ys = ys
         self.W = weight
+        if gap_penalty < 0.0:
+            raise ValueError("gap penalty cannot be negative")
         self.D = gap_penalty
         self.N = len(xs)
         self.M = len(ys)
@@ -20,7 +22,10 @@ class NWSequenceAlignmentSearchProblem(SearchProblem):
         j += 1
         if i != self.N and j != self.M:
             a, b = self.xs[i], self.ys[j]
-            yield (i, j, self.W(a, b))
+            w = self.W(a, b)
+            if w < 0.0:
+                raise ValueError("cannot have negative weights")
+            yield (i, j, w)
         if i != self.N:
             yield (i, None, self.D)
         if j != self.M:
@@ -43,7 +48,7 @@ class NWSequenceAlignmentSearchProblem(SearchProblem):
         return state == self.goal
 
 
-def AlignSequences(xs, ys, weight, gap_penalty=-1, minimize=False):
+def AlignSequences(xs, ys, weight, gap_penalty=1):
     """
     Returns an alignment of sequences `xs` and `ys` such that it maximizes the
     sum of weights as given by the `weight` function and the `gap_penalty`.
@@ -55,14 +60,7 @@ def AlignSequences(xs, ys, weight, gap_penalty=-1, minimize=False):
     If `minimize` is `True` this function minimizes the sum of the weights
     instead.
     """
-    if minimize:
-        W = weight
-    else:
-        W = lambda a, b: -weight(a, b)
-        gap_penalty = -gap_penalty
-    problem = NWSequenceAlignmentSearchProblem(xs, ys, W, gap_penalty)
+    problem = NWSequenceAlignmentSearchProblem(xs, ys, weight, gap_penalty)
     node = astar(problem, graph_search=True)
     path = [action for action, node in node.path()[1:]]
-    if minimize:
-        return path
-    return [(i, j, -cost) for i, j, cost in path]
+    return path
