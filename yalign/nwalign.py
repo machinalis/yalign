@@ -47,6 +47,14 @@ class NWSequenceAlignmentSearchProblem(SearchProblem):
     def is_goal(self, state):
         return state == self.goal
 
+    def heuristic(self, state):
+        i, j = state
+        x, y = self.N - i, self.M - j
+        n = max(x, y) - min(x, y)
+        # If this number was slighly larger, then TestAlignSequences_Sintetic2
+        # would fail. Try multiplying by 1.001.
+        return n * self.D  # * 1.001
+
 
 def AlignSequences(xs, ys, weight, gap_penalty=1):
     """
