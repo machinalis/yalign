@@ -59,7 +59,6 @@ class BaseTestAlignSequences(object):
             return self.weight(a, b)
         AlignSequences(range(len(self.xs)), range(len(self.ys)),
                        proxy, self.gap_penalty)
-        print len(seen), len(self.xs) * len(self.ys)
         self.assertLess(len(seen), len(self.xs) * len(self.ys))
 
 
