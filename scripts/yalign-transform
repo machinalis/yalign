@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Transform TMX files
+
+Usage:
+    transform [options] <corpus>
+
+Options:
+  -l --limit=<limit>       Limits the amount of sentences [default: 0]
+  -h --help                Show this screen.
+"""
+
+import re
+import random
+from lxml import etree
+from docopt import docopt
+
+
+XMLNS = "{http://www.w3.org/XML/1998/namespace}"
+STRIP_TAGS_REGEXP = re.compile("(>)(.*)(<)", re.DOTALL)
+
+
+def _language_from_node(node):
+    return node.attrib.get(XMLNS + "lang")
+
+
+def _node_to_sentence(node):
+    text = etree.tostring(node)
+    match = re.search(STRIP_TAGS_REGEXP, text)
+    text = match.group(2) if match else u""
+    text = text.replace("\n", " ")
+    return text
+
+
+def _iterparse(input_file, tag=None, events=("end",),
+               encoding=None, remove_blank_text=False):
+    parser = etree.iterparse(input_file, events=events,
+                             tag=tag, encoding=encoding,
+                             remove_blank_text=remove_blank_text)
+    for _, node in parser:
+        yield node
+        node.clear()
+        while node.getprevious() is not None:
+            del node.getparent()[0]
+
+
+def transform(filepath, limit=0):
+    inputfile = open(filepath)
+
+    tu = _iterparse(inputfile, "tu").next()
+    languages = tuple(_language_from_node(tuv)
+                      for tuv in tu.findall("tuv"))
+    source, target = languages
+
+    training = open("training_data", "w")
+    optimizing_data = open("optimizing_data", "w")
+    test_data = open("test_data", "w")
+
+    inputfile.seek(0)
+    for count, tu in enumerate(_iterparse(inputfile, "tu")):
+        if limit != 0 and count > limit:
+            break
+
+        sentences = {}
+        for tuv in tu.findall("tuv"):
+            seg = tuv.find("seg")
+            language = _language_from_node(tuv)
+            if language in languages:
+                sentences[language] = _node_to_sentence(seg)
+
+        i = random.random()
+        data = "{}\n{}\n".format(sentences[source], sentences[target])
+        if i <= 0.7:
+            training.write(data)
+        elif i <= 0.9:
+            optimizing_data.write(data)
+        else:
+            test_data.write(data)
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    corpus = args["<corpus>"]
+    limit = int(args["--limit"])
+    transform(corpus, limit)
