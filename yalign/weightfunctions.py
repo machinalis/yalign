@@ -5,7 +5,7 @@
 """
 
 import math
-from svm import SVMClassifier
+from yalign.svm import SVMClassifier
 
 try:
     import cPickle as pickle
