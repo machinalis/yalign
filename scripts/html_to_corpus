@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Extract text from an html page.
+
+Usage:
+    html_to_text <url_or_file> <output>
+"""
+
+import httplib
+from docopt import docopt
+
+from yalign.train import html_to_corpus
+
+
+def host_and_page(url):
+    url = url.split('//')[1]
+    parts = url.split('/')
+    host = parts[0]
+    page = "/".join(parts[1:])
+    return host, '/' + page
+
+
+def read_from_url(url):
+    host, page = host_and_page(url)
+    conn = httplib.HTTPConnection(host)
+    conn.request("GET", page)
+    response = conn.getresponse()
+    return response.read()
+
+
+def read_html(source):
+    if source.startswith('http'):
+        print "Reading from url:", source
+        html = read_from_url(source)
+    else:
+        print "Reading from file:", source
+        html = open(source).read()
+    return html
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    source = args['<url_or_file>']
+    html = read_html(source)
+    output = open(args['<output>'], 'w')
+    for sentence in html_to_corpus(html):
+        output.write(sentence.encode('utf-8') + '\n')
