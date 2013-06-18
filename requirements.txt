@@ -5,3 +5,4 @@ simpleai
 csv
 scikit-learn
 nltk
+beautifulsoup4

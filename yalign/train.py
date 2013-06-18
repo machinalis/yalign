@@ -1,5 +1,8 @@
+import re
 from random import choice, randint
 from itertools import islice
+from bs4 import BeautifulSoup
+from nltk import sent_tokenize
 from scramble import shuffle, remove
 
 
@@ -97,3 +100,13 @@ def scramble(xs):
         r = randint(5, 10)
         x = xs[n:n + r]
     return ys
+
+BAD_CHARS_PATTERN = re.compile('(\n|\t)+')
+
+
+def html_to_text(reader):
+    soup = BeautifulSoup(reader)
+    text = soup.body.get_text()
+    sentences = [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
+    return sentences
+
