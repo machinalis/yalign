@@ -108,8 +108,8 @@ def text_to_corpus(text):
     return [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
 
 
-def html_to_text(reader):
-    soup = BeautifulSoup(reader)
+def html_to_corpus(html_text):
+    soup = BeautifulSoup(html_text)
     text = soup.body.get_text()
     return text_to_corpus(text)
 

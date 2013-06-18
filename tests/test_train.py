@@ -3,7 +3,7 @@
 import unittest
 from StringIO import StringIO
 
-from yalign.train import read_lines, alignments, html_to_text
+from yalign.train import read_lines, alignments, html_to_corpus, text_to_corpus
 
 class TestReadLines(unittest.TestCase):
 
@@ -62,27 +62,38 @@ class TestAlignments(unittest.TestCase):
         tgt = [(5, u'hola')]
         self.assertEquals([(0, 0)], list(alignments(src, tgt)))
 
-class TestExtractTextFromHTML(unittest.TestCase):
+
+class TestHTMLToCorpus(unittest.TestCase):
 
     def test_extract(self):
-        html = StringIO("<html><head></head><body><p>Hello Peter</p></body></html>")
-        self.assertEquals([u'Hello Peter'], html_to_text(html))
-        html = StringIO("<html><head></head><body><p>Hello Peter. Go for gold.</p></body></html>")
-        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_text(html))
-        #html = StringIO("<html><head></head><body><table><tr><td>City<td><td>State</td></tr></table></body></html>")
-        #self.assertEquals([u'City State'], extract_text(html))
+        html = "<html><head></head><body><p>Hello Peter</p></body></html>"
+        self.assertEquals([u'Hello Peter'], html_to_corpus(html))
+        html = "<html><head></head><body><p>Hello Peter. Go for gold.</p></body></html>"
+        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_corpus(html))
 
     def test_newlines(self):
-        html = StringIO("<html><head></head>\n\n<body><p>\nHello Peter.\n\n\n Go for gold.\n</p>\n</body></html>")
-        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_text(html))
+        html = "<html><head></head>\n\n<body><p>\nHello Peter.\n\n\n Go for gold.\n</p>\n</body></html>"
+        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_corpus(html))
 
     def test_remove_whitespacing(self):
-        html = StringIO("<html><head></head><body><p>Wow\n\tWhat now?\t\t</p></body></html>")
-        self.assertEquals([u'Wow What now?'], html_to_text(html))
+        html = "<html><head></head><body><p>Wow\n\tWhat now?\t\t</p></body></html>"
+        self.assertEquals([u'Wow What now?'], html_to_corpus(html))
 
     def test_sentence_splitting(self):
-        html = StringIO("<html><head></head><body><p>Wow!! I did not know! Are you sure?</p></body></html>")
-        self.assertEquals([u'Wow!!', u'I did not know!', u'Are you sure?'], html_to_text(html))
+        html = "<html><head></head><body><p>Wow!! I did not know! Are you sure?</p></body></html>"
+        self.assertEquals([u'Wow!!', u'I did not know!', u'Are you sure?'], html_to_corpus(html))
+
+
+class TestTextToCorpus(unittest.TestCase):
+
+    def test_sentence_splitting(self):
+        lines = ['So there we were.', 'In the middle of nowhere!', 'Where to from here?', 'I cried..']
+        paragraph = ' '.join(lines)
+        self.assertEquals(lines, text_to_corpus(paragraph))
+
+    def test_remove_whitespacing(self):
+        html = "Wow\n\tWhat now?\t\t"
+        self.assertEquals([u'Wow What now?'], text_to_corpus(html))
 
 if __name__ == "__main__":
     unittest.main()
