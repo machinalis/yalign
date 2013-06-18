@@ -104,9 +104,12 @@ def scramble(xs):
 BAD_CHARS_PATTERN = re.compile('(\n|\t)+')
 
 
+def text_to_corpus(text):
+    return [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
+
+
 def html_to_text(reader):
     soup = BeautifulSoup(reader)
     text = soup.body.get_text()
-    sentences = [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
-    return sentences
+    return text_to_corpus(text)
 
