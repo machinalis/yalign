@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import csv
-import math
 from simpleai.machine_learning import is_attribute
 from simpleai.machine_learning import ClassificationProblem
 
@@ -32,20 +31,20 @@ class SentenceProblem(ClassificationProblem):
 
     @is_attribute
     def word_length_difference(self, tu):
-        a = len(tu.src.split())
-        b = len(tu.tgt.split())
+        a = len(tu.source_words)
+        b = len(tu.target_words)
         return ratio(a, b)
 
     @is_attribute
     def uppercase_words_difference(self, tu):
-        a = len([x for x in tu.src.split() if x.isupper()])
-        b = len([x for x in tu.tgt.split() if x.isupper()])
+        a = len([x for x in tu.source_words if x.isupper()])
+        b = len([x for x in tu.target_words if x.isupper()])
         return ratio(a, b)
 
     @is_attribute
     def capitalized_words_difference(self, tu):
-        a = len([x for x in tu.src.split() if x.istitle()])
-        b = len([x for x in tu.tgt.split() if x.istitle()])
+        a = len([x for x in tu.source_words if x.istitle()])
+        b = len([x for x in tu.target_words if x.istitle()])
         return ratio(a, b)
 
     def target(self, tu):
