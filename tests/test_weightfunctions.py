@@ -18,8 +18,7 @@ from yalign.weightfunctions import TUScore, WordScore
 class TestScoreTU(unittest.TestCase):
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        word_scores = os.path.join(base_path, "data",
-                                   "test_word_scores.pickle")
+        word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
         self.tus = os.path.join(base_path, "data", "test_tus.csv")
         _, classifier_filepath = tempfile.mkstemp()
 
@@ -78,7 +77,7 @@ class TestScoreTU(unittest.TestCase):
 class TestWordScore(unittest.TestCase):
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        translations = os.path.join(base_path, "data", "test_word_scores.pickle")
+        translations = os.path.join(base_path, "data", "test_word_scores.csv")
         self.score_word = WordScore(translations)
 
     def test_unicode(self):

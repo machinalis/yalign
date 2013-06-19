@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+"""
+Converts a phrasetable to a csv file
+
+Usage:
+    yalign-phrasetable-csv [options] <input_file> <output_csv_file>
+
+Options:
+  -h --help        Show this screen.
+"""
+
 import os
+import csv
 import gzip
 import codecs
 import tempfile
 import subprocess
-from collections import defaultdict
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+from docopt import docopt
 
 
 def _open_phrasetable(filepath):
@@ -91,17 +98,31 @@ def filter_phrasetable(in_filepath):
             # and inverse probability
             prob = 0.5 * inverse_prob + 0.5 * direct_prob
 
+            if prob < 0.001:
+                continue
+
             yield src, tgt, prob
 
 
-def save_translation_dictionary(translations, outfile):
+def save_csv_file(translations, outfile):
     """
-    Given a iterator that returns (src, tgt, prob) it creates a dictionary
-    and saves it in a pickle format into `outfile`
+    Given a iterator that returns (src, tgt, prob) it saves it
+    into a csv file
     """
 
-    result = defaultdict(lambda: defaultdict(float))
+    writer = csv.writer(open(outfile, "w"))
     for src, tgt, prob in translations:
-        result[src][tgt] = prob
+        writer.writerow([src.encode("utf-8"), tgt.encode("utf-8"), prob])
 
-    pickle.dump(dict(result), open(outfile, "w"))
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    input_filepath = args["<input_file>"]
+    output_filepath = args["<output_csv_file>"]
+
+    try:
+        translations_iterator = filter_phrasetable(input_filepath)
+        save_csv_file(translations_iterator, output_filepath)
+    except Exception as error:
+        exit("Error: {}".format(error))

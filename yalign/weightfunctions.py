@@ -4,22 +4,29 @@
 """
 """
 
+import csv
 import math
 from yalign.svm import SVMClassifier
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 
 class WordScore(object):
     def __init__(self, filepath):
-        self.translations = pickle.load(open(filepath))
+        self.filepath = filepath
         self.min_bound = 0.0
         self.max_bound = 1.0
+        self.translations = {}
 
-    def __call__(self, src, tgt):
+        self._parse_words_file()
+
+    def _parse_words_file(self):
+        data = csv.reader(open(self.filepath))
+        for elem in data:
+            word_a, word_b, prob = elem
+            if word_a not in self.translations:
+                self.translations[word_a] = {}
+            self.translations[word_a][word_b] = float(prob)
+
+    def __call__(self, word_a, word_b):
         """
         Scores a word to word alignment using the translation
         probability.
@@ -28,21 +35,21 @@ class WordScore(object):
         1 means that the words AREN'T likely translations of each other.
         """
 
-        if not isinstance(src, unicode) or not isinstance(tgt, unicode):
+        if not isinstance(word_a, unicode) or not isinstance(word_b, unicode):
             raise ValueError("Source and target words must be unicode")
-        if src.count(u" ") or tgt.count(u" "):
+        if word_a.count(u" ") or word_b.count(u" "):
             raise ValueError("Words cannot have spaces")
 
-        src = src.lower()
-        tgt = tgt.lower()
+        word_a = word_a.lower()
+        word_b = word_b.lower()
 
-        if src not in self.translations and src == tgt:
+        if word_a not in self.translations and word_a == word_b:
             return 0.0
-        elif src not in self.translations:
+        elif word_a not in self.translations:
             return 1.0
-        elif tgt not in self.translations[src]:
+        elif word_b not in self.translations[word_a]:
             return 1.0
-        return 1.0 - self.translations[src][tgt]
+        return 1.0 - self.translations[word_a][word_b]
 
 
 class TUScore(object):
