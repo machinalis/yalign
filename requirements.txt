@@ -2,7 +2,6 @@ scipy
 numpy
 docopt
 simpleai
-csv
 scikit-learn
 nltk
 beautifulsoup4
