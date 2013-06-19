@@ -9,7 +9,7 @@ from scramble import shuffle, remove
 def read_lines(parallel_corpus, n):
     """
     Read n lines of source and target in parallel corpus.
-    Returns tuple of src and tgt lines.
+    Returns tuple of A and B lines.
     Each line consists of an index and sentence.
     The index can be used to match the sentences as
     matching sentences have the same index number.
@@ -18,9 +18,9 @@ def read_lines(parallel_corpus, n):
     N = n * 2
     xs = list(x.decode('utf-8').strip()
               for x in islice(parallel_corpus, N))
-    src = enumerate(xs[0:N:2])
-    tgt = enumerate(xs[1:N:2])
-    return list(src), list(tgt)
+    A = enumerate(xs[0:N:2])
+    B = enumerate(xs[1:N:2])
+    return list(A), list(B)
 
 
 def generate_documents(parallel_corpus):
@@ -30,13 +30,13 @@ def generate_documents(parallel_corpus):
     to match pairs of sentences together.
     """
     n = randint(10, 30)
-    src, tgt = read_lines(parallel_corpus, n)
-    while src:
-        src = scramble(src)
-        tgt = scramble(tgt)
-        yield src, tgt
+    A, B = read_lines(parallel_corpus, n)
+    while A:
+        A = scramble(A)
+        B = scramble(B)
+        yield A, B
         n = randint(10, 30)
-        src, tgt = read_lines(parallel_corpus, n)
+        A, B = read_lines(parallel_corpus, n)
 
 
 def samples(source):
@@ -45,44 +45,44 @@ def samples(source):
     Sample output for target t and source s is:
     {aligned: 0 or 1}, {s doc length}, {s index}, s, {t doc length}, {t index}, t
     """
-    for src, tgt in generate_documents(source):
-        for sample in aligned_samples(src, tgt):
+    for A, B in generate_documents(source):
+        for sample in aligned_samples(A, B):
             yield sample
-        for sample in non_aligned_samples(src, tgt):
+        for sample in non_aligned_samples(A, B):
             yield sample
 
 
-def aligned_samples(src, tgt):
-    for idx, pair in enumerate(aligned_sentences(src, tgt)):
+def aligned_samples(A, B):
+    for idx, pair in enumerate(aligned_sentences(A, B)):
         a, b = pair
-        yield 1, len(src), src.index(a), a[1], len(tgt), tgt.index(b), b[1]
+        yield 1, len(A), A.index(a), a[1], len(B), B.index(b), b[1]
 
 
-def non_aligned_samples(src, tgt):
-    N = max(len(src), len(tgt))
+def non_aligned_samples(A, B):
+    N = max(len(A), len(B))
     for idx in xrange(N):
-        a, b = choice(src), choice(tgt)
+        a, b = choice(A), choice(B)
         if not a[0] == b[0]:
-            yield 0, len(src), src.index(a), a[1], len(tgt), tgt.index(b), b[1]
+            yield 0, len(A), A.index(a), a[1], len(B), B.index(b), b[1]
 
 
-def alignments(src, tgt):
+def alignments(A, B):
     """
-    Returns list of src and tgt alignments.
-    Rg.. [(0, 0), (1, 2), (2, 1)]
+    Returns list of A and B alignments.
+    Eg.. [(0, 0), (1, 2), (2, 1)]
     """
-    for a, b in aligned_sentences(src, tgt):
-        yield src.index(a), tgt.index(b)
+    for a, b in aligned_sentences(A, B):
+        yield A.index(a), B.index(b)
 
 
-def aligned_sentences(src, tgt):
-    src_dict = dict(src)
-    tgt_dict = dict(tgt)
-    indexes = list(src_dict.keys())
+def aligned_sentences(A, B):
+    A_dict = dict(A)
+    B_dict = dict(B)
+    indexes = list(A_dict.keys())
     indexes.sort()
     for idx in indexes:
-        a = src_dict.get(idx, None)
-        b = tgt_dict.get(idx, None)
+        a = A_dict.get(idx, None)
+        b = B_dict.get(idx, None)
         if a and b:
             yield (idx, a), (idx, b)
 
@@ -105,10 +105,16 @@ BAD_CHARS_PATTERN = re.compile('(\n|\t)+')
 
 
 def text_to_corpus(text):
+    """
+    Extract sentences split by newlines from plain text.
+    """
     return [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
 
 
 def html_to_corpus(html_text):
+    """
+    Extract sentences split by newlines from html.
+    """
     soup = BeautifulSoup(html_text)
     text = soup.body.get_text()
     return text_to_corpus(text)
