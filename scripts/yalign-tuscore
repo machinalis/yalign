@@ -5,7 +5,7 @@
 Trains the TU Classifier to score the alignment of two sentences
 
 Usage:
-    tuscore [options] <dataset> <word_scores> <outfile>
+    yalign-tuscore [options] <dataset> <word_scores> <outfile>
 
 Dataset must be a csv file with examples of aligned and not aligned sentences
 Word scores must be the output of the wordscore script

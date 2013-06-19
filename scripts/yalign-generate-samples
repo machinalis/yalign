@@ -5,7 +5,7 @@
 Generate alignment and non alignment samples from a parallel corpus.
 
 Usage:
-    generate_samples <parallel-corpus> <outfile>
+    yalign-generate-samples <parallel-corpus> <outfile>
 """
 
 from docopt import docopt

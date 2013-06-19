@@ -1,31 +1,35 @@
 # This makefile should be located inside a model directory
-# where all the necesary files will be created.
-# This directory must contain training.tmx wich is a parallel
-# corpus.
+# where all the necessary files will be created.
+SOURCE_LANG?=en
+TARGET_LANG?=es
+MAX_TRIES?=10
+TMX_FILE?=training.tmx
 
 wordscore.pickle: phrase-table.0-0.gz
-	#yalign-wordscore $^ wordscore.pickle
-	touch $@
+	yalign-wordscore $^ wordscore.pickle
 
 phrase-table.0-0.gz: training_data
 	touch $@
 
-tuscore.pickle: training_data wordscore.pickle
-	#yalign-tuscore training_data wordscore.pickle tuscore.pickle
-	touch $@
+training_samples.csv: training_data
+	yalign-generate-samples $^ training_samples.csv
+
+tuscore.pickle: training_samples.csv wordscore.pickle
+	yalign-tuscore $^ tuscore.pickle
 
 metadata.json: optimizing_data tuscore.pickle
-	touch $@
-
+	yalign-make-metadata -s $(SOURCE_LANG) -t $(TARGET_LANG) -n $(MAX_TRIES)  $^
 
 # 70% of the corpus
 training_data:
-	yalign-transform `pwd`/training.tmx
+	yalign-transform $(TMX_FILE)
 
 # 20% of the corpus
 optimizing_data:
-	yalign-transform `pwd`/training.tmx
+	yalign-transform $(TMX_FILE)
 
 # 10% of the corpus
 test_data:
-	yalign-transform `pwd`/training.tmx
+	yalign-transform $(TMX_FILE)
+
+create-model: metadata.json

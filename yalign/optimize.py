@@ -54,9 +54,3 @@ def documents(source):
         for src, tgt in generate_documents(source):
             yield src, tgt
         source.seek(0)
-
-if __name__ == "__main__":
-    from yalign.weightfunctions import TUScore
-    parallel_corpus = open('../cc/motorola.en-es')
-    scorer = TUScore('data/svm.pickle')
-    run_random_sample(parallel_corpus, scorer, 1000)

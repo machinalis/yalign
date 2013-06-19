@@ -5,7 +5,7 @@
 Compiles the necesary data to compute the word score for the aligner
 
 Usage:
-    word_score [options] <input_file> <output_file>
+    yalign-wordscore [options] <input_file> <output_file>
 
 Options:
   -h --help        Show this screen.

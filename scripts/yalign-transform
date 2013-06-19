@@ -5,7 +5,7 @@
 Transform TMX files
 
 Usage:
-    transform [options] <corpus>
+    yalign-transform [options] <corpus>
 
 Options:
   -l --limit=<limit>       Limits the amount of sentences [default: 0]
