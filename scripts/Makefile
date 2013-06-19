@@ -5,8 +5,8 @@ TARGET_LANG?=es
 MAX_TRIES?=10
 TMX_FILE?=training.tmx
 
-wordscore.pickle: phrase-table.0-0.gz
-	yalign-wordscore $^ wordscore.pickle
+wordscore.csv: phrase-table.0-0.gz
+	yalign-phrasetable-csv $^ wordscore.csv
 
 phrase-table.0-0.gz: training_data
 	touch $@
@@ -14,7 +14,7 @@ phrase-table.0-0.gz: training_data
 training_samples.csv: training_data
 	yalign-generate-samples $^ training_samples.csv
 
-tuscore.pickle: training_samples.csv wordscore.pickle
+tuscore.pickle: training_samples.csv wordscore.csv
 	yalign-tuscore $^ tuscore.pickle
 
 metadata.json: optimizing_data tuscore.pickle
