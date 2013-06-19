@@ -31,8 +31,7 @@ def random_sample(n, fn):
     best_result = (0, 0, 0)
     for i in xrange(n):
         gap_penalty = uniform(0, 0.5)
-        threshold = uniform(0, 1)
-        score = fn(gap_penalty, threshold)
+        score, threshold = fn(gap_penalty)
         if score > best_result[0]:
             best_result = score, gap_penalty, threshold
         print best_result
@@ -63,26 +62,30 @@ def items(values):
                 for idx, x in enumerate(values)])
 
 
-def best_alignments(threshold, gap_penalty, A, B, w):
+def align(reader, w, gap_penalty):
     """
-    The best alignment of documents A and B using this threshold, gap_penalty and
-    weight function.
-    """
-    align = AlignSequences(items(A), items(B), w, gap_penalty=gap_penalty)
-    return list([(a, b) for a, b, c in align if c < threshold])
-
-
-def align(reader, weight_fn, gap_penalty, threshold):
-    """
-    Function to be used when optimizing. Returns the score for the alignment
-    of two documents provided by the reader. The weight_fn, gap_penalty and threshold
-    are used as inputs to get the best alignment.
+    Function to be used when optimizing.
+    Returns the highest score obtained by the lowest threshold value on an
+    alignment performed with the weight function w and the gap_penalty.
+    The documents for this alignment are provided by the reader.
     """
     A, B = reader.next()
-    guessed_alignments = best_alignments(threshold, gap_penalty, A, B, weight_fn)
     actual_alignments = list(alignments(A, B))
-    score = F_score(guessed_alignments, actual_alignments)[0]
-    return score
+    xs = AlignSequences(items(A), items(B), w, gap_penalty=gap_penalty)
+    costs = [c for a, b, c in xs]
+    costs.sort(reverse=True)
+
+    best_threshold = 1
+    best_score = 0
+    for threshold in costs:
+        guessed_alignments = [(a, b) for a, b, c in xs if c < threshold]
+        score = F_score(guessed_alignments, actual_alignments)[0]
+        if score > best_score:
+            best_score = score
+            best_threshold = threshold
+        if score == 0:
+            break
+    return best_score, best_threshold
 
 
 def documents(parallel_corpus):
