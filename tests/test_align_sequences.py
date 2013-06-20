@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from yalign.nwalign import AlignSequences
+from yalign.align_sequences import align_sequences
 
 
 class BaseTestAlignSequences(object):
     def test_EmptySequences(self):
-        align = AlignSequences([], [], self.weight, self.gap_penalty)
+        align = align_sequences([], [], self.weight, self.gap_penalty)
         self.assertEqual(align, [])
 
     def test_FillsWithGaps(self):
-        align = AlignSequences(self.xs, [], self.weight, self.gap_penalty)
+        align = align_sequences(self.xs, [], self.weight, self.gap_penalty)
         expected = [(i, None, self.gap_penalty) for i, x in enumerate(self.xs)]
         self.assertEqual(align, expected)
 
     def test_mingaps(self):
         weight = lambda a, b: 0
         gap = 1
-        align = AlignSequences(self.xs, self.ys, weight, gap)
+        align = align_sequences(self.xs, self.ys, weight, gap)
         self.assertEqual(len(align), max(len(self.xs), len(self.ys)))
 
     def test_maxgaps(self):
         weight = lambda a, b: 1
         gap = 0
-        align = AlignSequences(self.xs, self.ys, weight, gap)
+        align = align_sequences(self.xs, self.ys, weight, gap)
         self.assertEqual(len(align), len(self.xs) + len(self.ys))
 
     def test_no_negative_gap_penalty(self):
@@ -31,7 +31,7 @@ class BaseTestAlignSequences(object):
         if gap > 0.0:
             gap = -gap
         gap = gap - 1
-        self.assertRaises(ValueError, AlignSequences, self.xs, self.ys,
+        self.assertRaises(ValueError, align_sequences, self.xs, self.ys,
                                                     self.weight, gap)
     def test_no_negative_weights(self):
         def proxy(a, b):
@@ -39,7 +39,7 @@ class BaseTestAlignSequences(object):
             if w > 0.0:
                 w = -w
             w = w - 1
-        self.assertRaises(ValueError, AlignSequences, self.xs, self.ys,
+        self.assertRaises(ValueError, align_sequences, self.xs, self.ys,
                                                         proxy, self.gap_penalty)
     def test_weight_not_called_twice(self):
         seen = set()
@@ -48,7 +48,7 @@ class BaseTestAlignSequences(object):
             seen.add((i, j))
             a, b = self.xs[i], self.ys[j]
             return self.weight(a, b)
-        AlignSequences(range(len(self.xs)), range(len(self.ys)),
+        align_sequences(range(len(self.xs)), range(len(self.ys)),
                        proxy, self.gap_penalty)
 
     def test_weight_not_for_all(self):
@@ -57,7 +57,7 @@ class BaseTestAlignSequences(object):
             seen.add((i, j))
             a, b = self.xs[i], self.ys[j]
             return self.weight(a, b)
-        AlignSequences(range(len(self.xs)), range(len(self.ys)),
+        align_sequences(range(len(self.xs)), range(len(self.ys)),
                        proxy, self.gap_penalty)
         self.assertLess(len(seen), len(self.xs) * len(self.ys))
 
@@ -72,7 +72,7 @@ class TestAlignSequences_EDBase(BaseTestAlignSequences):
             return 1
 
     def test_known_examples(self):
-        align = AlignSequences(self.xs, self.ys,
+        align = align_sequences(self.xs, self.ys,
                                self.weight, self.gap_penalty)
         score = sum(cost for _, _, cost in align)
         self.assertEqual(score, self.expected_cost)
@@ -103,7 +103,7 @@ class TestAlignSequences_Sintetic1(BaseTestAlignSequences, unittest.TestCase):
         return 1
 
     def test_all_As_and_Bs_are_aligned(self):
-        align = AlignSequences(self.xs, self.ys, self.weight, self.gap_penalty)
+        align = align_sequences(self.xs, self.ys, self.weight, self.gap_penalty)
         for i, j, cost in align:
             if i is None or j is None:
                 continue
@@ -122,7 +122,7 @@ class TestAlignSequences_Sintetic2(BaseTestAlignSequences, unittest.TestCase):
         return 4000
 
     def test_As_are_aligned(self):
-        align = AlignSequences(self.xs, self.ys, self.weight, self.gap_penalty)
+        align = align_sequences(self.xs, self.ys, self.weight, self.gap_penalty)
         for i, j, cost in align:
             if i is None or j is None:
                 continue

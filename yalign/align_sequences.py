@@ -3,9 +3,27 @@
 from simpleai.search import SearchProblem, astar
 
 
-class NWSequenceAlignmentSearchProblem(SearchProblem):
+def align_sequences(xs, ys, weight, gap_penalty=1):
+    """
+    Returns an alignment of sequences `xs` and `ys` such that it maximizes the
+    sum of weights as given by the `weight` function and the `gap_penalty`.
+    The aligment format is a list of tuples `(i, j, cost)` such that:
+        `i` and `j` are indexes of elements in `xs` and `ys` respectively.
+        The alignment weight is sum(cost for i, j, cost in alignment).
+        if `i == None` then `j` is not aligned to anything (is a gap).
+        if `j == None` then `i` is not aligned to anything (is a gap).
+    If `minimize` is `True` this function minimizes the sum of the weights
+    instead.
+    """
+    problem = SequenceAlignmentSearchProblem(xs, ys, weight, gap_penalty)
+    node = astar(problem, graph_search=True)
+    path = [action for action, node in node.path()[1:]]
+    return path
+
+
+class SequenceAlignmentSearchProblem(SearchProblem):
     def __init__(self, xs, ys, weight, gap_penalty):
-        super(NWSequenceAlignmentSearchProblem, self).__init__((-1, -1))
+        super(SequenceAlignmentSearchProblem, self).__init__((-1, -1))
         self.xs = xs
         self.ys = ys
         self.W = weight
@@ -51,24 +69,6 @@ class NWSequenceAlignmentSearchProblem(SearchProblem):
         i, j = state
         x, y = self.N - i, self.M - j
         n = max(x, y) - min(x, y)
-        # If this number was slighly larger, then TestAlignSequences_Sintetic2
-        # would fail. Try multiplying by 1.001.
+        # To test that this bound does not overestimates the cost try
+        # uncommenting the multiplication and re-running the tests.
         return n * self.D  # * 1.001
-
-
-def AlignSequences(xs, ys, weight, gap_penalty=1):
-    """
-    Returns an alignment of sequences `xs` and `ys` such that it maximizes the
-    sum of weights as given by the `weight` function and the `gap_penalty`.
-    The aligment format is a list of tuples `(i, j, cost)` such that:
-        `i` and `j` are indexes of elements in `xs` and `ys` respectively.
-        The alignment weight is sum(cost for i, j, cost in alignment).
-        if `i == None` then `j` is not aligned to anything (is a gap).
-        if `j == None` then `i` is not aligned to anything (is a gap).
-    If `minimize` is `True` this function minimizes the sum of the weights
-    instead.
-    """
-    problem = NWSequenceAlignmentSearchProblem(xs, ys, weight, gap_penalty)
-    node = astar(problem, graph_search=True)
-    path = [action for action, node in node.path()[1:]]
-    return path

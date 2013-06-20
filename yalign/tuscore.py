@@ -7,7 +7,7 @@ from simpleai.machine_learning import ClassificationProblem
 
 from yalign.tu import TU
 from yalign.svm import SVMClassifier
-from yalign.nwalign import AlignSequences
+from yalign.align_sequences import align_sequences
 from yalign.weightfunctions import WordScore
 
 
@@ -21,7 +21,7 @@ class SentenceProblem(ClassificationProblem):
         src_words = [x.lower() for x in tu.source_words]
         tgt_words = [x.lower() for x in tu.target_words]
         gap = 0.5  # If gap > 0.5 then the returned value could be > 1.
-        alignment = AlignSequences(src_words, tgt_words, self.score_word, gap)
+        alignment = align_sequences(src_words, tgt_words, self.score_word, gap)
         word_score = [x[2] for x in alignment]
         return abs(sum(word_score) / max(len(tu.src), len(tu.tgt)))
 
