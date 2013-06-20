@@ -8,13 +8,13 @@ from simpleai.machine_learning import ClassificationProblem
 from yalign.tu import TU
 from yalign.svm import SVMClassifier
 from yalign.align_sequences import align_sequences
-from yalign.weightfunctions import WordScore
+from yalign.wordpairscore import WordPairScore
 
 
 class SentenceProblem(ClassificationProblem):
     def __init__(self, word_score_filepath):
         super(SentenceProblem, self).__init__()
-        self.score_word = WordScore(word_score_filepath)
+        self.score_word = WordPairScore(word_score_filepath)
 
     @is_attribute
     def word_score(self, tu):

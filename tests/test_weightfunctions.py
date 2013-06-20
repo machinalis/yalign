@@ -12,7 +12,8 @@ import tempfile
 
 from yalign.tu import TU
 from yalign import tuscore
-from yalign.weightfunctions import TUScore, WordScore
+from yalign.weightfunctions import TUScore
+from yalign.wordpairscore import WordPairScore
 
 
 class TestScoreTU(unittest.TestCase):
@@ -74,11 +75,11 @@ class TestScoreTU(unittest.TestCase):
             self.assertLessEqual(score, self.classifier.max_bound)
 
 
-class TestWordScore(unittest.TestCase):
+class TestWordPairScore(unittest.TestCase):
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         translations = os.path.join(base_path, "data", "test_word_scores.csv")
-        self.score_word = WordScore(translations)
+        self.score_word = WordPairScore(translations)
 
     def test_unicode(self):
         with self.assertRaises(ValueError):
