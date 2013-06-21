@@ -35,6 +35,7 @@ class WordPairScore(ScoreFunction):
         1 means that the words AREN'T likely translations of each other.
         """
 
+        # FIXME: Consider moving this to a test
         if not isinstance(word_a, unicode) or not isinstance(word_b, unicode):
             raise ValueError("Source and target words must be unicode")
         if word_a.count(u" ") or word_b.count(u" "):
