@@ -1,6 +1,6 @@
 from yalign.train import generate_documents, alignments
 from yalign.evaluation import F_score
-from yalign.align_sequences import align_sequences
+from yalign.sequencealigner import SequenceAligner
 from functools import partial
 from yalign.tu import TU
 from random import uniform
@@ -71,7 +71,8 @@ def align(reader, w, gap_penalty):
     """
     A, B = reader.next()
     actual_alignments = list(alignments(A, B))
-    xs = align_sequences(items(A), items(B), w, gap_penalty=gap_penalty)
+    aligner = SequenceAligner(w, gap_penalty)
+    xs = aligner(items(A), items(B))
     costs = [c for a, b, c in xs]
     costs.sort(reverse=True)
 

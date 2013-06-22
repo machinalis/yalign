@@ -3,22 +3,32 @@
 from simpleai.search import SearchProblem, astar
 
 
-def align_sequences(xs, ys, weight, gap_penalty=1):
-    """
-    Returns an alignment of sequences `xs` and `ys` such that it maximizes the
-    sum of weights as given by the `weight` function and the `gap_penalty`.
-    The aligment format is a list of tuples `(i, j, cost)` such that:
-        `i` and `j` are indexes of elements in `xs` and `ys` respectively.
-        The alignment weight is sum(cost for i, j, cost in alignment).
-        if `i == None` then `j` is not aligned to anything (is a gap).
-        if `j == None` then `i` is not aligned to anything (is a gap).
-    If `minimize` is `True` this function minimizes the sum of the weights
-    instead.
-    """
-    problem = SequenceAlignmentSearchProblem(xs, ys, weight, gap_penalty)
-    node = astar(problem, graph_search=True)
-    path = [action for action, node in node.path()[1:]]
-    return path
+class SequenceAligner(object):
+    def __init__(self, weight, gap_penalty):
+        self.score = weight
+        self.penalty = gap_penalty
+
+    def __call__(self, xs, ys, score=None, penalty=None):
+        """
+        Returns an alignment of sequences `xs` and `ys` such that it maximizes
+        the sum of weights as given by the `weight` function and the
+        `gap_penalty`.
+        The aligment format is a list of tuples `(i, j, cost)` such that:
+            `i` and `j` are indexes of elements in `xs` and `ys` respectively.
+            The alignment weight is sum(cost for i, j, cost in alignment).
+            if `i == None` then `j` is not aligned to anything (is a gap).
+            if `j == None` then `i` is not aligned to anything (is a gap).
+        If `minimize` is `True` this function minimizes the sum of the weights
+        instead.
+        """
+        if score is None:
+            score = self.score
+        if penalty is None:
+            penalty = self.penalty
+        problem = SequenceAlignmentSearchProblem(xs, ys, score, penalty)
+        node = astar(problem, graph_search=True)
+        path = [action for action, node in node.path()[1:]]
+        return path
 
 
 class SequenceAlignmentSearchProblem(SearchProblem):

@@ -4,7 +4,7 @@ import math
 from simpleai.machine_learning import ClassificationProblem, is_attribute
 
 from yalign.datatypes import ScoreFunction, Alignment
-from yalign.align_sequences import align_sequences
+from yalign.sequencealigner import SequenceAligner
 from yalign.svm import SVMClassifier
 
 
@@ -42,17 +42,25 @@ class SentencePairScore(ScoreFunction):
         assert self.min_bound <= result <= self.max_bound
         return result
 
+    @property
+    def sentence_pair_aligner(self):
+        return self.classifier.problem.aligner
+
+    @property
+    def word_pair_score(self):
+        return self.classifier.problem.word_pair_score
+
 
 class SentencePairScoreProblem(ClassificationProblem):
     def __init__(self, word_pair_score):
         super(SentencePairScoreProblem, self).__init__()
+        # If gap > 0.5 then the returned value could be > 1.
         self.word_pair_score = word_pair_score
-        self.gap = 0.4999  # If gap > 0.5 then the returned value could be > 1.
+        self.aligner = SequenceAligner(word_pair_score, 0.4999)
 
     @is_attribute
     def word_score(self, alignment):
-        aligns = align_sequences(alignment.a, alignment.b,
-                                 self.word_pair_score, self.gap)
+        aligns = self.aligner(alignment.a, alignment.b)
         N = max(len(alignment.a), len(alignment.b))
         word_score = sum(x[2] for x in aligns) / float(N)
         # FIXME: Consider moving this to a test
