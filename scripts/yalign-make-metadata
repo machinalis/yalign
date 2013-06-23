@@ -7,26 +7,26 @@ Usage:
     yalign-make-metadata [options] <parallel-corpus> <scorer>
 
 Options:
+  -o --output=<output>             The metadata filename [default: metadata.json]
   -s --source-lang=<language>      The Source language [default: en]
   -t --target-lang=<language>      The target language [default: es]
-  -n --number-of-tries=<number-of-tries>  Max number of tries for optimizing [default: 10]
+  -n --number-of-tries=<number-of-tries>  Max number of tries for optimizing [default: 100]
 """
 
 from docopt import docopt
-from yalign.optimize import run_random_sample
+from yalign.optimize import optimize 
 from yalign.weightfunctions import TUScore
 import json
 
 if __name__ == "__main__":
     args = docopt(__doc__)
-    print args
     parallel_corpus = open(args["<parallel-corpus>"])
     scorer = TUScore(args["<scorer>"])
     N = int(args['--number-of-tries'])
     print "Optimizing with %s tries.." % N
-    score, gap_penalty, threshold = run_random_sample(parallel_corpus, scorer, N)
+    score, gap_penalty, threshold = optimize(parallel_corpus, scorer, N)
     metadata = dict(gap_penalty=gap_penalty,
                     threshold=threshold,
                     src_lang=args['--source-lang'],
                     tgt_lang=args['--target-lang'])
-    json.dump(metadata, open("metadata.json", "w"))
+    json.dump(metadata, open(args['--output'], "w"))
