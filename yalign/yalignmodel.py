@@ -7,6 +7,7 @@ except ImportError:
 import random
 
 
+# FIXME: this class is untried, complete
 class YalignModel(object):
     def __init__(self, document_pair_aligner=None, threshold=None):
         self.document_pair_aligner = document_pair_aligner
@@ -49,7 +50,9 @@ class YalignModel(object):
         self.metadata.threshold = self.threshold
         pickle.dump(dict(self.metadata), open(metadata, "w"))
 
-    # FIXME: This is pseudo-code. Better to put it in the optimize module
+    # FIXME: Consider that this optimization should be trained with multiple
+    #        documents, not just a single pair.
+    # FIXME: This is pseudo-code. It must be moved to the optimize module.
     def optimize_gap_penalty_and_threshold(self, document_a,
                                            document_b, correct_alignments):
         N = 20
@@ -60,7 +63,7 @@ class YalignModel(object):
             penalty = a * 0.5 * random.random() + b
             self.document_pair_aligner.penalty = penalty
             alignments = self.document_pair_aligner(document_a, document_b)
-            # FIXME: optimal_threshold does not exists
+            # FIXME: optimal_threshold is not implemented
             score, threshold = optimize.optimal_threshold(alignments,
                                                           correct_alignments)
             observations.append((score, penalty, threshold))

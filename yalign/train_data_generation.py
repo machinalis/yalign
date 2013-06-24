@@ -6,6 +6,36 @@ from nltk import sent_tokenize
 from scramble import shuffle, remove
 
 
+###
+### FIXME: Module-wise, separate stuff between train_data_generation and
+###        input_conversion. Adapt to new datatypes.
+###
+
+
+def training_alignments_from_documents(document_a, document_b, mix=0.5):
+    """
+    Returns an iterable of `Alignment`s to be used for training.
+    `document_a` and `document_b` are aligned documents.
+    `mix` is the proportion of correct alignments generated.
+    For example, a ratio of 1 means all alignments generated are correct
+    alignments, a ratio of 0 means that all alignments generated are incorrect.
+    """
+    # FIXME: implement
+    pass
+
+
+def training_scrambling_from_documents(document_a, document_b):
+    """
+    Returns a tuple `(scrambled_a, scrambled_b, correct_alignments)`
+    `scrambled_a` is a scrambled version of document_a.
+    `scrambled_b` is a scrambled version of document_b.
+    `correct_alignments` are all the correct sentence alignments that exist
+    between `scrambled_a` and `scrambled_b`.
+    """
+    # FIXME: implement
+    pass
+
+
 def read_lines(parallel_corpus, n):
     """
     Read n lines of source and target in parallel corpus.
@@ -83,7 +113,7 @@ def aligned_sentences(A, B):
     for idx in indexes:
         a = A_dict.get(idx, None)
         b = B_dict.get(idx, None)
-        if a and b:
+        if a and b:  # FIXME: 0 is a valid index and gets confused with None
             yield (idx, a), (idx, b)
 
 
