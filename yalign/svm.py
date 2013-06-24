@@ -32,7 +32,7 @@ class SVMClassifier(Classifier):
 
     def classify(self, data):
         vector = self.vectorize(data)
-        return self.svm.predict(vector)[0]
+        return self.svm.predict(vector)
 
     def score(self, data):
         """
@@ -46,6 +46,6 @@ class SVMClassifier(Classifier):
         vector = numpy.array(vector)
         # FIXME: This is OUR convention (values in 0..1) not in general.
         #        Consider moving.
-        assert(vector.all() >= 0)
-        assert(vector.all() <= 1)
+        assert vector.all() >= 0
+        assert vector.all() <= 1
         return vector
