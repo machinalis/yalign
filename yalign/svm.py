@@ -49,7 +49,3 @@ class SVMClassifier(Classifier):
         assert(vector.all() >= 0)
         assert(vector.all() <= 1)
         return vector
-
-
-if __name__ == "__main__":
-    pass
