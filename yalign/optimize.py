@@ -6,10 +6,10 @@ Module for optimizing parameters.
 import random
 from functools import partial
 
-from yalign.evaluation import F_score
+from yalign.evaluation import F_score, documents
 from yalign.nwalign import AlignSequences
-from yalign.tu import TU
-from yalign.train import random_align, documents as train_documents
+from yalign.train import random_align
+from yalign.api import AlignDocuments
 
 
 def optimize(parallel_corpus, tu_scorer, N=100):
@@ -21,11 +21,11 @@ def optimize(parallel_corpus, tu_scorer, N=100):
         *N: Number of random sampling iterations.
     """
     best = 0, 0, 0
-    weight = partial(_weight, tu_scorer)
-    for idx, docs in enumerate(_documents(parallel_corpus)):
+    align_documents = AlignDocuments(tu_scorer)
+    for idx, docs in enumerate(documents(parallel_corpus)):
         A, B, alignments = random_align(*docs) 
         gap_penalty = random.uniform(0,1)
-        predicted_alignments = AlignSequences(_items(A), _items(B), weight, gap_penalty)
+        predicted_alignments = align_documents(A, B, gap_penalty=gap_penalty, threshold=1)
         score, threshold = _optimize_threshold(gap_penalty, 
                                                alignments, 
                                                predicted_alignments)
@@ -52,23 +52,3 @@ def _costs(alignments):
     costs.sort(reverse=True)
     for cost in costs:
         yield cost
-
-
-def _weight(tu_scorer, a, b):
-    """Retruns the tu_score for items a and b"""
-    distance = abs(a[1] - b[1])
-    tu = TU(a[0], b[0], distance)
-    return tu_scorer(tu)[0][0]
-
-
-def _items(xs):
-    pos = lambda idx: float(idx) / len(xs) 
-    return [(val, pos(idx)) for idx, val in enumerate(xs)]
-
-
-def _documents(parallel_corpus):
-    """Provides an endless stream of documents"""
-    while True:
-        for A,B in train_documents(parallel_corpus):
-            yield A,B
-        parallel_corpus.seek(0)

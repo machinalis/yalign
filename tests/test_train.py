@@ -5,8 +5,8 @@ import unittest
 from StringIO import StringIO
 from mock import patch
 from yalign.train import * 
-from yalign.train import _aligned_samples, _non_aligned_samples, _realign 
-from yalign.train import _reorder, _random_alignments 
+from yalign.train import _aligned_samples, _misaligned_samples  
+from yalign.train import _reorder, _random_remove
                             
 
 def swap_start_and_end(xs):
@@ -22,8 +22,8 @@ class TestTrainingSamples(unittest.TestCase):
         samples = list(training_samples(StringIO()))
         self.assertEquals(0, len(samples))
 
-    def test_aligned_and_non_aligned_samples(self):
-        samples = list(training_samples(reader(8)))
+    def test_aligned_and_misaligned_samples(self):
+        samples = list(training_samples(reader(8),2,2))
         self.assertEquals(8, len(samples))
         self.assertEquals(4, len([x for x in samples if x[0]]))
         self.assertEquals(4, len([x for x in samples if not x[0]]))
@@ -47,13 +47,14 @@ class TestDocuments(unittest.TestCase):
             self.assertTrue(1 <= len(A) <= 1)
             self.assertTrue(1 <= len(B) <= 1)
 
+
 class TestGenerateSamples(unittest.TestCase):
 
     def test_empty_inputs(self):
         samples = list(generate_samples([], []))
         self.assertEquals(0, len(samples))
 
-    def test_samples_are_alignments_and_non_alignments(self): 
+    def test_samples_are_alignments_and_misalignments(self): 
         samples = list(generate_samples(['A','B','C'], ['X','Y','Z']))
         self.assertEquals(6, len(samples))
         self.assertEquals(3, len([x for x in samples if x[0]]))
@@ -63,8 +64,9 @@ class TestGenerateSamples(unittest.TestCase):
         try:
             list(generate_samples([],['A']))
             self.assertFalse("Failed to raise exception")
-        except AssertionError as e:
+        except ValueError as e:
             self.assertEqual("Documents must be the same size", str(e))
+
 
 class TestAlignedSamples(unittest.TestCase):
  
@@ -82,22 +84,23 @@ class TestAlignedSamples(unittest.TestCase):
         self.assertEquals(2, len(samples))
         self.assertEquals([s0, s1], samples)
 
+
 class TestNonAlignedSamples(unittest.TestCase):
 
     def test_empty_alignments(self):
         A, B = [], []
-        samples = list(_non_aligned_samples(A, B, []))
+        samples = list(_misaligned_samples(A, B, []))
         self.assertEquals(0, len(samples))
     
     def test_one_alignment(self):
-        # no non alignments when we have only one alignment
+        # no misalignments when we have only one alignment
         A, B = ['A'], ['Z']
-        samples = list(_non_aligned_samples(A, B, [(0, 0)]))
+        samples = list(_misaligned_samples(A, B, [(0, 0)]))
         self.assertEquals(0, len(samples))
 
     def test_sample_values(self):
         A, B = ['A','B'], ['Y','Z']
-        samples = list(_non_aligned_samples(A, B, [(0, 0),(1, 1)]))
+        samples = list(_misaligned_samples(A, B, [(0, 0),(1, 1)]))
         s0 = (0, 2, 0, 'A', 2, 1, 'Z')
         s1 = (0, 2, 1, 'B', 2, 0, 'Y')
         self.assertEquals(2, len(samples))
@@ -108,14 +111,15 @@ class TestNonAlignedSamples(unittest.TestCase):
             n = random.randint(2, 100)
             A, B = list(reader(n)), list(reader(n))
             alignments = zip(A,B)  
-            samples = list(_non_aligned_samples(A, B, alignments))
+            samples = list(_misaligned_samples(A, B, alignments))
             self.assertEquals(n, len(samples))
             # check no duplicates
             self.assertEquals(len(set(samples)), len(samples))
-            # check only non-alignments
-            non_alignments = [(x[2], x[5]) for x in samples]
-            common_samples = len(set(alignments).intersection(set(non_alignments)))
+            # check only misalignments
+            misalignments = [(x[2], x[5]) for x in samples]
+            common_samples = len(set(alignments).intersection(set(misalignments)))
             self.assertEquals(0, common_samples)
+
 
 class TestReorder(unittest.TestCase):
     
@@ -127,22 +131,65 @@ class TestReorder(unittest.TestCase):
         self.assertEquals([1,2,0], _reorder([0,1,2],[2,0,1]))
 
     def test_indexes_size_correct(self):
-        self.assertRaises(AssertionError, _reorder, [1,2],[0])
-        self.assertRaises(AssertionError, _reorder, [1],[0,1])
+        self.assertRaises(ValueError, _reorder, [1,2],[0])
+        self.assertRaises(ValueError, _reorder, [1],[0,1])
 
-class TestRandomAlignments(unittest.TestCase):
+
+class TestRandomAlign(unittest.TestCase):
+
+    def test_boundries(self):
+        self.assertEquals(([],[],[]), random_align([],[]))
+        self.assertEquals((['Y'],[],[(0, None)]), random_align(['Y'],[]))
+        self.assertEquals(([],['Z'],[(None, 0)]), random_align([],['Z']))
+
+    @patch('random.shuffle')    
+    def test_unshuffled(self, mock_shuffle):    
+        mock_shuffle.side_effect=lambda x: x
+        A, B = ['A','B'],['Y','Z']
+        self.assertEquals((A, B,[(0, 0),(1, 1)]), random_align(A, B))
+        A, B = ['A','B'],['Y']
+        self.assertEquals((A, B,[(0, 0),(1, None)]), random_align(A, B))
+        A, B = ['A'],['Y','Z']
+        self.assertEquals((A, B,[(None, 1), (0, 0)]), random_align(A, B))
 
     @patch('random.randint')    
     @patch('random.shuffle')    
-    def test_shuffling(self, mock_shuffle, mock_randint):    
+    def test_shuffled(self, mock_shuffle, mock_randint):    
         mock_randint.return_value=2
-        mock_shuffle.side_effect=lambda x: x
-        alignments = _random_alignments(2)
-        self.assertEquals([(0,0),(1,1)], alignments)
-        
         mock_shuffle.side_effect=swap_start_and_end
-        alignments = _random_alignments(2)
-        self.assertEquals([(1,1),(0,0)], alignments)
+        A, B = ['A','B'],['Y','Z']
+        self.assertEquals((['B','A'],['Z', 'Y'] ,[(0, 0),(1, 1)]), random_align(A, B))
+        A, B = ['A','B'],['Y']
+        self.assertEquals((['B', 'A'], B,[(0, None), (1, 0)]), random_align(A, B))
+        A, B = ['A'],['Y','Z']
+        self.assertEquals((A, ['Z', 'Y'],[(None, 0), (0, 1)]), random_align(A, B))
+
+    def test_perc_to_remove_range(self):
+       self.assertRaises(ValueError, random_align, [], [], 1.1)
+       self.assertRaises(ValueError, random_align, [], [], -1)
+
+    @patch('random.uniform')    
+    def test_perc_to_remove(self, mock_uniform):
+        mock_uniform.return_value=.2
+        A, B = range(10), range(10)
+        A, B, alignments = random_align(A, B, perc_to_remove=0.2)
+        self.assertEquals(8,len(A))
+        self.assertEquals(8, len(B))
+
+class TestRandomRemove(unittest.TestCase):
+
+    def test_empty_input(self):
+        xs = []
+        _random_remove(xs)
+        self.assertEquals([], xs)
+   
+    @patch('random.uniform')    
+    def test_remove(self, mock_uniform):    
+        mock_uniform.return_value=.2
+        xs = range(10)
+        _random_remove(xs)
+        self.assertEquals(8, len(xs))
+
 
 class TestRandomRange(unittest.TestCase):
 
@@ -169,6 +216,7 @@ class TestRandomRange(unittest.TestCase):
         mock_shuffle.side_effect=swap_start_and_end
         self.assertEquals([1,0,3,2], random_range(4)) 
         self.assertEquals([1,0,3,2,4], random_range(5)) 
+
 
 class TestHTMLToCorpus(unittest.TestCase):
 
@@ -201,6 +249,7 @@ class TestTextToCorpus(unittest.TestCase):
     def test_remove_whitespacing(self):
         html = "Wow\n\tWhat now?\t\t"
         self.assertEquals([u'Wow What now?'], text_to_corpus(html))
+
 
 if __name__ == "__main__":
     unittest.main()

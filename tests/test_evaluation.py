@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from yalign.evaluation import F_score, precision, recall
+import os
+import json
+from itertools import izip
 
+from helpers import default_tuscore
+from yalign.evaluation import *
+from yalign import tuscore
+from yalign.weightfunctions import TUScore
 
 class TestFScore(unittest.TestCase):
 
@@ -26,10 +32,41 @@ class TestFScore(unittest.TestCase):
         delta = 0.0001
         self.assertEquals(0, F_score([], [])[0])
         self.assertEquals(0, F_score([], [1])[0])
-        self.assertAlmostEquals(0.9181, F_score([1], [1])[0], delta=delta)
-        self.assertAlmostEquals(0.8416, F_score([1], [1, 2])[0], delta=delta)
-        self.assertAlmostEqual(0.9181, F_score([1, 2], [1, 2])[0], delta=delta)
-        self.assertAlmostEquals(0.4809, F_score([1, 2], [1])[0], delta=delta)
+        self.assertAlmostEquals(1, F_score([1], [1])[0], delta=delta)
+        self.assertAlmostEquals(0.9901, F_score([1], [1, 2])[0], delta=delta)
+        self.assertAlmostEqual(1, F_score([1, 2], [1, 2])[0], delta=delta)
+        self.assertAlmostEquals(0.5024, F_score([1, 2], [1])[0], delta=delta)
 
+    def test_beta_value(self):
+        # Should get a perfect score:
+        self.assertEquals(1, F_score([1], [1], beta=1)[0])
+        self.assertEquals(1, F_score([1], [1], beta=.2)[0])
+        a = F_score([1,2], [1], beta=.2)[0]
+        b = F_score([1,2], [1], beta=.25)[0]
+        #lower beta give more emphasis to precision
+        self.assertTrue(a < b)
+
+class TestEvaluate(unittest.TestCase):
+    
+    def setUp(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        self.parallel_corpus = os.path.join(base_path, "data", "canterville.txt")
+        metadata_filename = os.path.join(base_path, "data", "metadata.json")
+        metadata = json.load(open(metadata_filename))
+        self.gap_penalty = metadata['gap_penalty']
+        self.threshold = metadata['threshold']
+        classifier_filepath = default_tuscore()
+        self.tu_scorer = TUScore(classifier_filepath)
+    
+    def test_evaluate(self):
+        stats = evaluate(self.parallel_corpus,
+                         self.tu_scorer,
+                         self.gap_penalty,
+                         self.threshold, 20) 
+        for x, y in izip(stats['max'], stats['mean']):
+            self.assertTrue(x > y > 0)
+        for x in stats['std']:
+            self.assertTrue(x > 0)
+             
 if __name__ == "__main__":
     unittest.main()

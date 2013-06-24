@@ -15,7 +15,7 @@ MIN_LINES = 1
 MAX_LINES = 50
 
 
-def training_samples(parallel_corpus):
+def training_samples(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
     """
     Training sample generater. Creates samples from the provided parallel corpus.
         *parallel_corpus: A file object of a file consists of alternating sentences
@@ -24,7 +24,7 @@ def training_samples(parallel_corpus):
     A sample is a tuple containing:
         {aligned: 0 or 1}, {doc A size}, {index a}, {a}, {doc B size}, {index b}, {b}
     """
-    for A, B in documents(parallel_corpus):
+    for A, B in documents(parallel_corpus, m, n):
         for sample in generate_samples(A, B):
             yield sample
 
@@ -50,20 +50,63 @@ def _next_documents(reader, N):
     return lines[0:n:2], lines[1:n:2]
 
 
-def random_align(A, B):
+def random_align(A, B, perc_to_remove=0):
     """Realign A and B and return the documents along with the alignments """
-    alignments = _random_alignments(len(A))
-    A, B = _realign(A, B, alignments)
+    if not 0 <= perc_to_remove <= 1:
+        raise ValueError("perc_to_remove must be between 0 and 1")
+    xs = list(enumerate(A))
+    ys = list(enumerate(B))
+    xs = _reorder(xs, random_range(len(xs)))
+    ys = _reorder(ys, random_range(len(ys)))
+    _random_remove(xs, limit=perc_to_remove)
+    _random_remove(ys, limit=perc_to_remove)
+    alignments = _extract_alignments(xs, ys)
+    A = list([x[1] for x in xs])
+    B = list([y[1] for y in ys])
     return A, B, alignments
 
 
+def _random_remove(xs, limit=0.2):
+    n = int(len(xs) * random.uniform(0,limit))
+    for _ in xrange(n):
+        r = random.randint(0, len(xs) - 1)
+        xs.pop(r)
+
+ 
+def _extract_alignments(xs, ys):
+    """
+    Returns alignments for lists xs and ys.
+
+    The items in the lists are tuples where each tuple consists of
+    a key and value. The alignments are formed by matching the keys.
+    If there is no matching key then the item is alignd with None.
+    """
+    x_dict = dict(xs)
+    y_dict = dict(ys)
+    alignments = []
+    n = max(len(xs), len(ys))
+    for idx in xrange(n):
+        x = x_dict.get(idx, None)
+        y = y_dict.get(idx, None)
+        i,j = None, None
+        if not x is None:
+            i = xs.index((idx, x))
+        if not y is None:
+            j = ys.index((idx, y))
+        if not (i, j) == (None, None):
+            alignments.append((i,j))
+    alignments.sort()
+    return alignments
+ 
+
 def generate_samples(A, B):
-    """Generates aligned and non aligned samples for documents A and B"""
-    assert len(A) == len(B), "Documents must be the same size"
+    """Generates aligned and misaligned samples for documents A and B"""
+    if not len(A) == len(B):
+        raise ValueError("Documents must be the same size")
     A, B, alignments = random_align(A, B)
     for sample in _aligned_samples(A, B, alignments):
         yield sample
-    for sample in _non_aligned_samples(A, B, alignments):
+    for sample in _misaligned_samples(A, B, alignments):
         yield sample
 
 
@@ -81,40 +124,26 @@ def _aligned_samples(A, B, alignments):
         yield _sample(A, B, alignment)
 
     
-def _non_aligned_samples(A, B, alignments):
-    """Generate non aligned samples"""
-    non_alignments = []
+def _misaligned_samples(A, B, alignments):
+    misalignments = []
     n = len(alignments)
     if n > 1:  
-        while len(non_alignments) < n:
+        while len(misalignments) < n:
             i = random.randint(0, len(A) - 1) 
             j = random.randint(0, len(B) - 1)
-            if not (i, j) in alignments and not (i,j) in non_alignments: 
-                non_alignments.append((i,j))
+            if not (i, j) in alignments and not (i,j) in misalignments: 
+                misalignments.append((i,j))
                 yield _sample(A, B, (i,j), aligned=False)
-
-
-def _realign(xs, ys, alignments):
-    """Reorders lists xs,ys according to the alignments"""
-    xs = _reorder(xs, [i for i, _ in alignments])
-    ys = _reorder(ys, [j for _, j in alignments])
-    return xs, ys
 
 
 def _reorder(xs, indexes):
     """Reorder list xs by indexes"""
-    assert len(indexes) == len(xs), "xs and indexes must be the same size"
+    if not len(indexes) == len(xs):
+        raise ValueError("xs and indexes must be the same size")
     ys = [None] * len(xs)
     for i, j in enumerate(indexes):
         ys[j] = xs[i]
     return ys 
-
-
-def _random_alignments(n):
-    """Create n random alignments. Highest index will be n -1."""
-    xs = random_range(n)
-    ys = random_range(n)
-    return zip(xs,ys)
 
 
 def random_range(N, span=10):
