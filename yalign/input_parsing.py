@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import csv
-from yalign.datatypes import Sentence, Alignment
+from yalign.datatypes import Sentence, SentencePair
 
 
 def parse_training_file(training_file):
     """
-    Parses the file and yields Alignment objects.
+    Parses the file and yields SentencePair objects.
     """
     labels = None
     data = csv.reader(open(training_file))
@@ -20,7 +20,7 @@ def parse_training_file(training_file):
         aligned = elem[labels["aligned"]] == "1"
         # FIXME: Consider moving this to a test
         assert aligned is True or aligned is False
-        yield Alignment(sentence_a, sentence_b, are_really_aligned=aligned)
+        yield SentencePair(sentence_a, sentence_b, aligned=aligned)
 
 
 def sentence_from_csv_elem(elem, label, labels):

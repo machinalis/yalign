@@ -3,7 +3,7 @@
 import math
 from simpleai.machine_learning import ClassificationProblem, is_attribute
 
-from yalign.datatypes import ScoreFunction, Alignment
+from yalign.datatypes import ScoreFunction, SentencePair
 from yalign.sequencealigner import SequenceAligner
 from yalign.svm import SVMClassifier
 
@@ -14,15 +14,15 @@ class SentencePairScore(ScoreFunction):
         self.classifier = None
 
     # FIXME: Consider giving the word_aligner instead of word_score_function
-    def train(self, alignments, word_score_function):
+    def train(self, pairs, word_score_function):
         """
         Trains the sentence pair likelihood score using examples.
-        `alignments` is an interable of `Alignment` instances.
+        `pairs` is an interable of `SentencePair` instances.
         `word_score_function` is an instance of ScoreFunction, perhaps even an
         instance of `WordPairScore`.
         """
         self.problem = SentencePairScoreProblem(word_score_function)
-        self.classifier = SVMClassifier(alignments, self.problem)
+        self.classifier = SVMClassifier(pairs, self.problem)
 
     def load(self, filepath):
         self.classifier = SVMClassifier.load(filepath)
@@ -36,7 +36,7 @@ class SentencePairScore(ScoreFunction):
         """
         if self.classifier is None:
             raise LookupError("Score not trained or loaded yet")
-        a = Alignment(a, b)
+        a = SentencePair(a, b)
         score = self.classifier.score(a)
         result = logistic_function(score * 3)
         # FIXME: Consider moving this to a test
@@ -92,7 +92,7 @@ class SentencePairScoreProblem(ClassificationProblem):
         return ratio(a, b)
 
     def target(self, alignment):
-        return alignment.are_really_aligned
+        return alignment.aligned
 
 
 def ratio(a, b):

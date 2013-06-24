@@ -22,15 +22,12 @@ class Document(AnotatedList):
     pass
 
 
-# FIXME: Consider renaming to AlignedSentences, of SentencePair
-class Alignment(list):
-    def __init__(self, sentence_a, sentence_b, are_really_aligned=None):
-        super(Alignment, self).__init__()
+class SentencePair(list):
+    def __init__(self, sentence_a, sentence_b, aligned=None):
+        super(SentencePair, self).__init__([sentence_a, sentence_b])
         self.a = sentence_a
         self.b = sentence_b
-        self.append(self.a)
-        self.append(self.b)
-        self.are_really_aligned = are_really_aligned
+        self.aligned = aligned
 
 
 class ScoreFunction(object):
