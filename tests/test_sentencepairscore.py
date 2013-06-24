@@ -7,7 +7,7 @@ import unittest
 from yalign.datatypes import Sentence
 from yalign.sentencepairscore import SentencePairScore
 from yalign.wordpairscore import WordPairScore
-from yalign.tuscore import parse_training_data
+from yalign.input_parsing import parse_training_file
 
 
 class TestSentencePairScore(unittest.TestCase):
@@ -16,9 +16,9 @@ class TestSentencePairScore(unittest.TestCase):
         word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
         word_pair_score = WordPairScore(word_scores)
         self.alignments_file = os.path.join(base_path, "data", "test_tus.csv")
-        training_data = parse_training_data(self.alignments_file)
+        alignments = parse_training_file(self.alignments_file)
         self.score = SentencePairScore()
-        self.score.train(training_data, word_pair_score)
+        self.score.train(alignments, word_pair_score)
 
     def test_does_not_raises_errors(self):
         # Since I can't test if its a good or a bad alignment at this level
@@ -41,7 +41,7 @@ class TestSentencePairScore(unittest.TestCase):
         self.assertGreater(score1, score2)
 
     def test_score_in_bounds(self):
-        for alignment in parse_training_data(self.alignments_file):
+        for alignment in parse_training_file(self.alignments_file):
             score = self.score(*alignment)
             self.assertGreaterEqual(score, self.score.min_bound)
             self.assertLessEqual(score, self.score.max_bound)

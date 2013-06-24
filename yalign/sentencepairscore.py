@@ -21,8 +21,8 @@ class SentencePairScore(ScoreFunction):
         `word_score_function` is an instance of ScoreFunction, perhaps even an
         instance of `WordPairScore`.
         """
-        problem = SentencePairScoreProblem(word_score_function)
-        self.classifier = SVMClassifier(alignments, problem)
+        self.problem = SentencePairScoreProblem(word_score_function)
+        self.classifier = SVMClassifier(alignments, self.problem)
 
     def load(self, filepath):
         self.classifier = SVMClassifier.load(filepath)

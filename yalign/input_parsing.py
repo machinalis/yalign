@@ -4,33 +4,30 @@ import csv
 from yalign.datatypes import Sentence, Alignment
 
 
-# FIXME: Move this to a input_parsing module
-
-
-def parse_training_data(dataset_filepath):
+def parse_training_file(training_file):
     """
     Parses the file and yields Alignment objects.
     """
-
     labels = None
-    data = csv.reader(open(dataset_filepath))
+    data = csv.reader(open(training_file))
     for elem in data:
         if labels is None:  # First line contains the labels
             labels = dict((x, elem.index(x)) for x in elem)
             continue
 
-        sentence_a = _sentence_from_csv_elem(elem, "src", labels)
-        sentence_b = _sentence_from_csv_elem(elem, "tgt", labels)
+        sentence_a = sentence_from_csv_elem(elem, "src", labels)
+        sentence_b = sentence_from_csv_elem(elem, "tgt", labels)
         aligned = elem[labels["aligned"]] == "1"
         # FIXME: Consider moving this to a test
         assert aligned is True or aligned is False
         yield Alignment(sentence_a, sentence_b, are_really_aligned=aligned)
 
 
-def _sentence_from_csv_elem(elem, label, labels):
+def sentence_from_csv_elem(elem, label, labels):
     words = elem[labels[label]].decode("utf-8").split()
-    position = float(elem[labels[label + " idx"]]) / \
-               float(elem[labels[label + " N"]])
+    idx = float(elem[labels[label + " idx"]])
+    N = float(elem[labels[label + " N"]])
+    position = idx / N
     for word in words:
         # FIXME: add harder checks
         if (word.endswith(".") or word.endswith(",")) and word[:-1].isalpha():
