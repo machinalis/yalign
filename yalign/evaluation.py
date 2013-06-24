@@ -6,8 +6,8 @@ Module to score the accuracy of alignments.
 
 import numpy as np
 
-from yalign.train_data_generation import documents as train_documents
-from yalign.train_data_generation import random_align
+from yalign.input_conversion import documents_from_parallel_corpus
+from yalign.train_data_generation import training_scrambling_from_documents
 from yalign.api import AlignDocuments
 
 
@@ -23,7 +23,7 @@ def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
     results = []
     align_documents = AlignDocuments(tu_scorer, gap_penalty, threshold)
     for idx, docs in enumerate(documents(parallel_corpus)):
-        A, B, alignments = random_align(*docs)
+        A, B, alignments = training_scrambling_from_documents(*docs)
         predicted_alignments = align_documents(A, B)
         xs = [(a, b) for a, b, _ in predicted_alignments]
         scores = F_score(xs, alignments)
@@ -66,6 +66,6 @@ def recall(xs, ys):
 def documents(parallel_corpus):
     """Provides an endless stream of documents"""
     while True:
-        for A, B in train_documents(parallel_corpus):
+        for A, B in documents_from_parallel_corpus(parallel_corpus):
             yield A, B
         parallel_corpus.seek(0)

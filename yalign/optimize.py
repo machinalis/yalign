@@ -6,7 +6,7 @@ Module for optimizing parameters.
 
 import random
 from yalign.evaluation import F_score, documents
-from yalign.train_data_generation import random_align
+from yalign.train_data_generation import training_scrambling_from_documents
 from yalign.api import AlignDocuments
 
 
@@ -21,7 +21,7 @@ def optimize(parallel_corpus, tu_scorer, N=100):
     best = 0, 0, 0
     align_documents = AlignDocuments(tu_scorer)
     for idx, docs in enumerate(documents(parallel_corpus)):
-        A, B, alignments = random_align(*docs)
+        A, B, alignments = training_scrambling_from_documents(*docs)
         gap_penalty = random.uniform(0,1)
         predicted_alignments = align_documents(A, B, gap_penalty=gap_penalty, threshold=1)
         score, threshold = _optimize_threshold(gap_penalty,
