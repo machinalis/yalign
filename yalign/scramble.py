@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from random import randint, shuffle as knuth_shuffle
 import re
 from StringIO import StringIO

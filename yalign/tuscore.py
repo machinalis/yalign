@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 import csv
 from yalign.datatypes import Sentence, Alignment

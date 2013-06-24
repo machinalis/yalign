@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from yalign.train import generate_documents, alignments
 from yalign.evaluation import F_score
 from yalign.sequencealigner import SequenceAligner

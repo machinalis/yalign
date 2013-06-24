@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 
 def F_score(xs, ys, beta=0.1):
@@ -26,6 +27,3 @@ def recall(xs, ys):
     Recall of xs for sample set ys.
     """
     return len([x for x in xs if x in ys]) / float(len(ys)) if ys else 0.
-
-
-

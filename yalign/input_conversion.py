@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from yalign.datatypes import Sentence, Document
 import nltk
 

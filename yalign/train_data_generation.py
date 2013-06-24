@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 from random import choice, randint
 from itertools import islice
@@ -148,4 +150,3 @@ def html_to_corpus(html_text):
     soup = BeautifulSoup(html_text)
     text = soup.body.get_text()
     return text_to_corpus(text)
-

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+
 import os
+import random
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-import random
 
 
 # FIXME: this class is untried, complete

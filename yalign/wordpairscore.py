@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+
 import csv
 from yalign.datatypes import ScoreFunction
 
 
 class WordPairScore(ScoreFunction):
     """
-        Scores the likelihood of `word_a` being a trainslation of `word_b` and
-        viceversa using using the translation probability of those words given
-        in a dictionary file.
+    Scores the likelihood of `word_a` being a trainslation of `word_b` and
+    viceversa using using the translation probability of those words given
+    in a dictionary file.
     """
     def __init__(self, dictionary_file):
         super(WordPairScore, self).__init__(0, 1)

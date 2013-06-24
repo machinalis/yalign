@@ -3,7 +3,7 @@
 import unittest
 from StringIO import StringIO
 
-from yalign.train import read_lines, alignments, html_to_corpus, text_to_corpus
+from yalign.train_data_generation import read_lines, alignments, html_to_corpus, text_to_corpus
 
 class TestReadLines(unittest.TestCase):
 
