@@ -13,18 +13,15 @@ import tempfile
 from yalign.tu import TU
 from yalign import tuscore
 from yalign.weightfunctions import TUScore, WordScore
-
+from helpers import default_tuscore
 
 class TestScoreTU(unittest.TestCase):
+
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
-        self.tus = os.path.join(base_path, "data", "test_tus.csv")
-        _, classifier_filepath = tempfile.mkstemp()
-
-        tuscore.train_and_save_classifier(self.tus, word_scores,
-                                           classifier_filepath)
+        classifier_filepath = default_tuscore() 
         self.classifier = TUScore(classifier_filepath)
+        self.tus = os.path.join(base_path, "data", "test_tus.csv")
 
     def test_does_not_raises_errors(self):
         # Since I can't test if its a good or a bad alignment at this level

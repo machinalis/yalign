@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+# coding: utf-8
+"""
+Evaluate a model using random data generated from a parallel corpus.
+
+Usage:
+    yalign-evaluate-model [options] <parallel-corpus> <scorer> <metadata>
+
+Options:
+  -n --number-of-tries=<number-of-tries>  Max number of evaluations [default: 100]
+"""
+import json
+from docopt import docopt
+from yalign.weightfunctions import TUScore
+from yalign.evaluation import evaluate
+
+def print_stats(stats):
+    print "    \tF\tPrec.\tRec."
+    print "max \t%.4f\t%.4f\t%.4f" % tuple(stats['max'])
+    print "mean\t%.4f\t%.4f\t%.4f" % tuple(stats['mean'])
+    print "std \t%.4f\t%.4f\t%.4f" % tuple(stats['std'])
+    
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    parallel_corpus = open(args["<parallel-corpus>"])
+    metadata = json.load(open(args["<metadata>"]))
+    gap_penalty = metadata['gap_penalty']
+    threshold = metadata['threshold']
+    scorer = TUScore(args["<scorer>"])
+    N = int(args['--number-of-tries'])
+    stats = evaluate(parallel_corpus, scorer, gap_penalty, threshold, N)
+    print_stats(stats)

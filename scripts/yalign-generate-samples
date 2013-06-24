@@ -9,7 +9,7 @@ Usage:
 """
 
 from docopt import docopt
-from yalign.train import samples
+from yalign.train import training_samples
 import csv
 
 if __name__ == "__main__":
@@ -17,5 +17,5 @@ if __name__ == "__main__":
     parallel_corpus = open(args["<parallel-corpus>"])
     outfile = csv.writer(open(args["<outfile>"], "w"), quoting=csv.QUOTE_NONNUMERIC)
     outfile.writerow(["aligned", "src N", "src idx", "src", "tgt N", "tgt idx", "tgt"])
-    for x in samples(parallel_corpus):
+    for x in training_samples(parallel_corpus):
         outfile.writerow(x)
