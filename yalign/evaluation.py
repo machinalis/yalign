@@ -1,15 +1,13 @@
-#!/usr/bin/env python
-# coding: utf-8
+# -*- coding: utf-8 -*-
+
 """
 Module to score the accuracy of alignments.
 """
-from functools import partial
+
 import numpy as np
 
-from yalign.train import documents as train_documents
-from yalign.tu import TU
-from yalign.nwalign import AlignSequences
-from yalign.train import random_align
+from yalign.train_data_generation import documents as train_documents
+from yalign.train_data_generation import random_align
 from yalign.api import AlignDocuments
 
 
@@ -25,17 +23,18 @@ def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
     results = []
     align_documents = AlignDocuments(tu_scorer, gap_penalty, threshold)
     for idx, docs in enumerate(documents(parallel_corpus)):
-        A, B, alignments = random_align(*docs) 
+        A, B, alignments = random_align(*docs)
         predicted_alignments = align_documents(A, B)
         xs = [(a, b) for a, b, _ in predicted_alignments]
         scores = F_score(xs, alignments)
         results.append(scores)
-        if idx >= N: break
+        if idx >= N:
+            break
     return _stats(results)
 
 
 def _stats(xs):
-    return dict(max=np.amax(xs,0), mean=np.mean(xs,0), std=np.std(xs,0))
+    return dict(max=np.amax(xs, 0), mean=np.mean(xs, 0), std=np.std(xs, 0))
 
 
 def F_score(xs, ys, beta=0.1):
@@ -67,6 +66,6 @@ def recall(xs, ys):
 def documents(parallel_corpus):
     """Provides an endless stream of documents"""
     while True:
-        for A,B in train_documents(parallel_corpus):
-            yield A,B
+        for A, B in train_documents(parallel_corpus):
+            yield A, B
         parallel_corpus.seek(0)

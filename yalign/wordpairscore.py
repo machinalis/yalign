@@ -1,24 +1,25 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-"""
-"""
+# -*- coding: utf-8 -*-
 
 import csv
-import math
-from yalign.svm import SVMClassifier
+from yalign.datatypes import ScoreFunction
 
 
-class WordScore(object):
-    def __init__(self, filepath):
-        self.filepath = filepath
-        self.min_bound = 0.0
-        self.max_bound = 1.0
+class WordPairScore(ScoreFunction):
+    """
+    Scores the likelihood of `word_a` being a trainslation of `word_b` and
+    viceversa using using the translation probability of those words given
+    in a dictionary file.
+    """
+    def __init__(self, dictionary_file):
+        super(WordPairScore, self).__init__(0, 1)
+        self.filepath = dictionary_file
         self.translations = {}
-
         self._parse_words_file()
 
     def _parse_words_file(self):
+        # FIXME: Add support for .csv.gz
+        # FIXME: Question: Why not (word_a, word_b) as keys?
+        # FIXME: Implement the reverse on the outside
         data = csv.reader(open(self.filepath))
         for elem in data:
             word_a, word_b, prob = elem
@@ -28,13 +29,14 @@ class WordScore(object):
 
     def __call__(self, word_a, word_b):
         """
-        Scores a word to word alignment using the translation
-        probability.
+        Scores the likelihood of `word_a` being a trainslation of `word_b` and
+        viceversa.
         Scores range from 0 to 1.
         0 means that the words ARE likely translations of each other.
         1 means that the words AREN'T likely translations of each other.
         """
 
+        # FIXME: Consider moving this to a test
         if not isinstance(word_a, unicode) or not isinstance(word_b, unicode):
             raise ValueError("Source and target words must be unicode")
         if word_a.count(u" ") or word_b.count(u" "):
@@ -50,27 +52,3 @@ class WordScore(object):
         elif word_b not in self.translations[word_a]:
             return 1.0
         return 1.0 - self.translations[word_a][word_b]
-
-
-class TUScore(object):
-    def __init__(self, filepath):
-        self.classifier = SVMClassifier.load(filepath)
-        self.min_bound = 0.0
-        self.max_bound = 1.0
-
-    def __call__(self, tu):
-        """
-        Returns the score of a sentence.
-        The result will always be a in (self.min_bound, self.max_bound)
-        """
-        score = self.classifier.score(tu)
-        result = logistic_function(score * 3)
-        assert self.min_bound <= result <= self.max_bound
-        return result
-
-
-def logistic_function(x):
-    """
-    See: http://en.wikipedia.org/wiki/Logistic_function
-    """
-    return 1 / (1 + math.e ** (-x))

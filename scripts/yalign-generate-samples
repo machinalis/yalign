@@ -9,7 +9,7 @@ Usage:
 """
 
 from docopt import docopt
-from yalign.train import training_samples
+from yalign.train_data_generation import training_samples
 import csv
 
 if __name__ == "__main__":

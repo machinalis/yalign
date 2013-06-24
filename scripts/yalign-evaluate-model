@@ -11,7 +11,7 @@ Options:
 """
 import json
 from docopt import docopt
-from yalign.weightfunctions import TUScore
+from yalign.sentencepairscore import SentencePairScore
 from yalign.evaluation import evaluate
 
 def print_stats(stats):
@@ -26,7 +26,8 @@ if __name__ == "__main__":
     metadata = json.load(open(args["<metadata>"]))
     gap_penalty = metadata['gap_penalty']
     threshold = metadata['threshold']
-    scorer = TUScore(args["<scorer>"])
+    scorer = SentencePairScore()
+    scorer.load(args["<scorer>"])
     N = int(args['--number-of-tries'])
     stats = evaluate(parallel_corpus, scorer, gap_penalty, threshold, N)
     print_stats(stats)

@@ -32,7 +32,7 @@ def training_samples(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
 def documents(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
     """
     Document generator. Documents are created from the parallel corpus and
-    will be between m and n lines long.      
+    will be between m and n lines long.
     """
     m = m if m > 0 else 1
     N = random.randint(m, n)
@@ -72,7 +72,7 @@ def _random_remove(xs, limit=0.2):
         r = random.randint(0, len(xs) - 1)
         xs.pop(r)
 
- 
+
 def _extract_alignments(xs, ys):
     """
     Returns alignments for lists xs and ys.
@@ -97,7 +97,7 @@ def _extract_alignments(xs, ys):
             alignments.append((i,j))
     alignments.sort()
     return alignments
- 
+
 
 def generate_samples(A, B):
     """Generates aligned and misaligned samples for documents A and B"""
@@ -123,15 +123,15 @@ def _aligned_samples(A, B, alignments):
     for alignment in alignments:
         yield _sample(A, B, alignment)
 
-    
+
 def _misaligned_samples(A, B, alignments):
     misalignments = []
     n = len(alignments)
-    if n > 1:  
+    if n > 1:
         while len(misalignments) < n:
-            i = random.randint(0, len(A) - 1) 
+            i = random.randint(0, len(A) - 1)
             j = random.randint(0, len(B) - 1)
-            if not (i, j) in alignments and not (i,j) in misalignments: 
+            if not (i, j) in alignments and not (i,j) in misalignments:
                 misalignments.append((i,j))
                 yield _sample(A, B, (i,j), aligned=False)
 
@@ -143,7 +143,7 @@ def _reorder(xs, indexes):
     ys = [None] * len(xs)
     for i, j in enumerate(indexes):
         ys[j] = xs[i]
-    return ys 
+    return ys
 
 
 def random_range(N, span=10):
@@ -166,7 +166,7 @@ def random_range(N, span=10):
         xs += ys
     return xs
 
- 
+
 BAD_CHARS_PATTERN = re.compile('(\n|\t)+')
 
 

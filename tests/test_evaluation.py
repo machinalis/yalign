@@ -5,10 +5,9 @@ import os
 import json
 from itertools import izip
 
-from helpers import default_tuscore
+from helpers import default_sentence_pair_score
 from yalign.evaluation import *
-from yalign import tuscore
-from yalign.weightfunctions import TUScore
+
 
 class TestFScore(unittest.TestCase):
 
@@ -41,13 +40,14 @@ class TestFScore(unittest.TestCase):
         # Should get a perfect score:
         self.assertEquals(1, F_score([1], [1], beta=1)[0])
         self.assertEquals(1, F_score([1], [1], beta=.2)[0])
-        a = F_score([1,2], [1], beta=.2)[0]
-        b = F_score([1,2], [1], beta=.25)[0]
+        a = F_score([1, 2], [1], beta=.2)[0]
+        b = F_score([1, 2], [1], beta=.25)[0]
         #lower beta give more emphasis to precision
         self.assertTrue(a < b)
 
+
 class TestEvaluate(unittest.TestCase):
-    
+
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         self.parallel_corpus = os.path.join(base_path, "data", "canterville.txt")
@@ -55,18 +55,17 @@ class TestEvaluate(unittest.TestCase):
         metadata = json.load(open(metadata_filename))
         self.gap_penalty = metadata['gap_penalty']
         self.threshold = metadata['threshold']
-        classifier_filepath = default_tuscore()
-        self.tu_scorer = TUScore(classifier_filepath)
-    
+        self.classifier, _ = default_sentence_pair_score()
+
     def test_evaluate(self):
         stats = evaluate(self.parallel_corpus,
-                         self.tu_scorer,
+                         self.classifier,
                          self.gap_penalty,
-                         self.threshold, 20) 
+                         self.threshold, 20)
         for x, y in izip(stats['max'], stats['mean']):
             self.assertTrue(x > y > 0)
         for x in stats['std']:
             self.assertTrue(x > 0)
-             
+
 if __name__ == "__main__":
     unittest.main()

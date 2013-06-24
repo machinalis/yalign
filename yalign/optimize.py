@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
+# -*- coding: utf-8 -*-
+
 """
 Module for optimizing parameters.
 """
-import random
-from functools import partial
 
+import random
 from yalign.evaluation import F_score, documents
-from yalign.nwalign import AlignSequences
-from yalign.train import random_align
+from yalign.train_data_generation import random_align
 from yalign.api import AlignDocuments
 
 
@@ -23,16 +21,16 @@ def optimize(parallel_corpus, tu_scorer, N=100):
     best = 0, 0, 0
     align_documents = AlignDocuments(tu_scorer)
     for idx, docs in enumerate(documents(parallel_corpus)):
-        A, B, alignments = random_align(*docs) 
+        A, B, alignments = random_align(*docs)
         gap_penalty = random.uniform(0,1)
         predicted_alignments = align_documents(A, B, gap_penalty=gap_penalty, threshold=1)
-        score, threshold = _optimize_threshold(gap_penalty, 
-                                               alignments, 
+        score, threshold = _optimize_threshold(gap_penalty,
+                                               alignments,
                                                predicted_alignments)
         if score > best[0]:
             best = score, gap_penalty, threshold
         if idx >= N: break
-    return best 
+    return best
 
 
 def _optimize_threshold(gap_penalty, real_alignments, predicted_alignments):
@@ -43,7 +41,7 @@ def _optimize_threshold(gap_penalty, real_alignments, predicted_alignments):
         score = F_score(xs, real_alignments)[0]
         if score > best[0]:
             best = score, threshold
-    return best 
+    return best
 
 
 def _costs(alignments):

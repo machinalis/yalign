@@ -2,13 +2,9 @@
 
 import unittest
 import os
-import subprocess as sub 
-import shutil
+import subprocess as sub
 import csv
-import random
-
-from tempfile import NamedTemporaryFile, mkstemp
-from yalign.train import text_to_corpus
+from tempfile import mkstemp
 
 class TestGenerateSamples(unittest.TestCase):
 
@@ -21,13 +17,13 @@ class TestGenerateSamples(unittest.TestCase):
 
     def test_output(self):
         cmd = 'yalign-generate-samples %s %s' % (self.infile_name, self.outfile_name)
-        sub.call(cmd, shell=True) 
+        sub.call(cmd, shell=True)
         self.assertTrue(os.path.exists(self.outfile_name))
         reader = csv.reader(open(self.outfile_name))
         self.assertTrue(self.headings, reader.next())
         samples = list([sample for sample in reader])
         self.assertEquals(4, len(samples))
- 
+
     def tearDown(self):
         os.remove(self.outfile_name)
 

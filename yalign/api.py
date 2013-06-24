@@ -4,8 +4,9 @@
 Document alignment functionality.
 """
 from functools import partial
-from yalign.tu import TU
-from yalign.nwalign import AlignSequences
+from yalign.datatypes import Sentence, SentencePair
+from yalign.sequencealigner import SequenceAligner
+
 
 class AlignDocuments(object):
 
@@ -22,30 +23,28 @@ class AlignDocuments(object):
 
     def __call__(self, A, B, gap_penalty=None, threshold=None):
         """
-        Returns alignments for documents A and B. Each alignment 
-        consists of the two indexes that are aligned as well as the 
-        cost of that alignment. 
+        Returns alignments for documents A and B. Each alignment
+        consists of the two indexes that are aligned as well as the
+        cost of that alignment.
 
             *A, B: The two documents to be aligned.
 
-            *gap_penalty: If none provided then the gap penalty at 
+            *gap_penalty: If none provided then the gap penalty at
                           initialization will be used.
 
-            *threshold: Only alignments below or equal this value will 
+            *threshold: Only alignments below or equal this value will
                         be returned. If none provided then the threshold
                         at initialization will be used.
         """
         gap_penalty = self._gap_penalty(gap_penalty)
         threshold = self._threshold(threshold)
-        alignments = AlignSequences(self._items(A), 
-                                    self._items(B), 
-                                    self.weight, 
-                                    gap_penalty)
+        aligner = SequenceAligner(self.weight, gap_penalty)
+        alignments = aligner(self._items(A), self._items(B))
         return self._filter_by_threshold(alignments, threshold)
-   
+
     def _gap_penalty(self, gap_penalty):
         gap_penalty = self.gap_penalty if gap_penalty is None else gap_penalty
-        if gap_penalty is None: 
+        if gap_penalty is None:
             raise ValueError("Gap penalty value needed.")
         return gap_penalty
 
@@ -54,17 +53,17 @@ class AlignDocuments(object):
         if threshold is None:
             raise ValueError("Threshold value needed.")
         return threshold
- 
+
     def _filter_by_threshold(self, alignments, threshold):
         return [(a, b, c) for a, b, c in alignments if c <= threshold]
 
     def _weight(self, tu_scorer, a, b):
         """Retruns the tu_score for items a and b"""
-        distance = abs(a[1] - b[1])
-        tu = TU(a[0], b[0], distance)
-        return tu_scorer(tu)[0][0]
+        sentence_a = Sentence(a[0].split(), position=a[1])
+        sentence_b = Sentence(b[0].split(), position=b[1])
+        return tu_scorer(sentence_a, sentence_b)[0][0]
 
     def _items(self, xs):
-        pos = lambda idx: float(idx) / len(xs) 
+        pos = lambda idx: float(idx) / len(xs)
         return [(val, pos(idx)) for idx, val in enumerate(xs)]
 

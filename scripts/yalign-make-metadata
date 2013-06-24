@@ -15,13 +15,14 @@ Options:
 
 from docopt import docopt
 from yalign.optimize import optimize 
-from yalign.weightfunctions import TUScore
+from yalign.sentencepairscore import SentencePairScore
 import json
 
 if __name__ == "__main__":
     args = docopt(__doc__)
     parallel_corpus = open(args["<parallel-corpus>"])
-    scorer = TUScore(args["<scorer>"])
+    scorer = SentencePairScore()
+    scorer.load(args["<scorer>"])
     N = int(args['--number-of-tries'])
     print "Optimizing with %s tries.." % N
     score, gap_penalty, threshold = optimize(parallel_corpus, scorer, N)
