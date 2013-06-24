@@ -13,6 +13,7 @@ class SentencePairScore(ScoreFunction):
         super(SentencePairScore, self).__init__(0, 1)
         self.classifier = None
 
+    # FIXME: Consider giving the word_aligner instead of word_score_function
     def train(self, alignments, word_score_function):
         """
         Trains the sentence pair likelihood score using examples.
