@@ -65,7 +65,7 @@ class BaseTestAlignSequences(object):
         self.assertLess(len(seen), len(self.xs) * len(self.ys))
 
 
-class TestAlignSequences_EDBase(BaseTestAlignSequences):
+class BaseTestAlignSequences_ED(BaseTestAlignSequences):
     gap_penalty = 1
 
     def weight(self, a, b):
@@ -80,14 +80,14 @@ class TestAlignSequences_EDBase(BaseTestAlignSequences):
         self.assertEqual(score, self.expected_cost)
 
 
-class TestAlignSequences_EditDistance1(TestAlignSequences_EDBase, unittest.TestCase):
+class TestAlignSequences_EditDistance1(BaseTestAlignSequences_ED, unittest.TestCase):
     # Example taken from http://en.wikipedia.org/wiki/Levenshtein_distance
     xs = "kitten"
     ys = "sitting"
     expected_cost = 3
 
 
-class TestAlignSequences_EditDistance2(TestAlignSequences_EDBase, unittest.TestCase):
+class TestAlignSequences_EditDistance2(BaseTestAlignSequences_ED, unittest.TestCase):
     # Example taken from http://en.wikipedia.org/wiki/Levenshtein_distance
     xs = "Saturday"
     ys = "Sunday"
