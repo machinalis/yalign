@@ -39,7 +39,7 @@ class AlignDocuments(object):
         gap_penalty = self._gap_penalty(gap_penalty)
         threshold = self._threshold(threshold)
         aligner = SequenceAligner(self.weight, gap_penalty)
-        alignments = aligner(self._items(A), self._items(B))
+        alignments = aligner(A, B)
         return self._filter_by_threshold(alignments, threshold)
 
     def _gap_penalty(self, gap_penalty):
@@ -59,11 +59,5 @@ class AlignDocuments(object):
 
     def _weight(self, tu_scorer, a, b):
         """Retruns the tu_score for items a and b"""
-        sentence_a = Sentence(a[0].split(), position=a[1])
-        sentence_b = Sentence(b[0].split(), position=b[1])
-        return tu_scorer(sentence_a, sentence_b)[0][0]
-
-    def _items(self, xs):
-        pos = lambda idx: float(idx) / len(xs)
-        return [(val, pos(idx)) for idx, val in enumerate(xs)]
+        return tu_scorer(a, b)[0][0]
 

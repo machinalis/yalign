@@ -43,15 +43,10 @@ class TestAlignDocuments(unittest.TestCase):
         self.assertEquals(1, fn(None))
         self.assertEquals(.5, fn(.5))
 
-    def test_items(self):
-        xs = self.align_documents._items(u'A B C D'.split())
-        self.assertEquals([pos for _, pos in xs], [0, .25, .5, .75])
-        self.assertEquals([val for val, _ in xs], [u'A', u'B', u'C', u'D'])
-
     def test_weight(self):
-        x = self.align_documents.weight((u'Hello', 0.2), (u'Hola', 0.2))
+        x = self.align_documents.weight(Sentence(u'Hello', position=0.2), Sentence(u'Hola', position=0.2))
         self.assertTrue(0 < x < 1)
-        y = self.align_documents.weight((u'Hello', 0), (u'Hola', 0.5))
+        y = self.align_documents.weight(Sentence(u'Hello', position=0), Sentence(u'Hola', position=0.5))
         self.assertTrue(0 < y < x)
 
 
