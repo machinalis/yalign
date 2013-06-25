@@ -32,7 +32,7 @@ class YalignModel(object):
     def align(self, document_a, document_b):
         """
         Try to recover aligned sentences from the comparable documents
-        `document1` and `document2`.
+        `document_a` and `document_b`.
         The returned alignments are expected to meet the F-measure for which
         the model was trained for.
         """
