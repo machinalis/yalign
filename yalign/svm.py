@@ -49,3 +49,8 @@ class SVMClassifier(Classifier):
         assert vector.all() >= 0
         assert vector.all() <= 1
         return vector
+
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        del result["dataset"]
+        return result
