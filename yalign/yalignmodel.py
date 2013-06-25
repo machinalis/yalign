@@ -7,6 +7,8 @@ try:
 except ImportError:
     import pickle
 
+from yalign import optimize
+
 
 # FIXME: this class is untried, complete
 class YalignModel(object):
@@ -30,7 +32,7 @@ class YalignModel(object):
     def align(self, document_a, document_b):
         """
         Try to recover aligned sentences from the comparable documents
-        `document1` and `document2`.
+        `document_a` and `document_b`.
         The returned alignments are expected to meet the F-measure for which
         the model was trained for.
         """
@@ -51,25 +53,10 @@ class YalignModel(object):
         self.metadata.threshold = self.threshold
         pickle.dump(dict(self.metadata), open(metadata, "w"))
 
-    # FIXME: Consider that this optimization should be trained with multiple
-    #        documents, not just a single pair.
-    # FIXME: This is pseudo-code. It must be moved to the optimize module.
-    def optimize_gap_penalty_and_threshold(self, document_a,
-                                           document_b, correct_alignments):
-        N = 20
-        b = self.sentence_pair_score.min_bound
-        a = self.sentence_pair_score.max_bound - b
-        observations = []
-        while len(observations) != N:
-            penalty = a * 0.5 * random.random() + b
-            self.document_pair_aligner.penalty = penalty
-            alignments = self.document_pair_aligner(document_a, document_b)
-            # FIXME: optimal_threshold is not implemented
-            score, threshold = optimize.optimal_threshold(alignments,
-                                                          correct_alignments)
-            observations.append((score, penalty, threshold))
-        score, penalty, threshold = max(observations)
-        self.document_pair_aligner.penalty = penalty
+    def optimize_gap_penalty_and_threshold(self, parallel_corpus):
+        score, gap_penalty, threshold = optimize.optimize(parallel_corpus,
+            self.sentence_pair_aligner)
+        self.document_pair_aligner.penalty = gap_penalty
         self.threshold = threshold
 
 
