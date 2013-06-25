@@ -12,24 +12,28 @@ from yalign.api import AlignDocuments
 
 def optimize(parallel_corpus, tu_scorer, N=100):
     """
-    Returns the best F score, gap_penalty and threshold found by random sampling.
-        *parallel corpus: A file object for a file of alternaing lines in the languages
-                          of the model to be optimized.
-        *tu_scorer: A TUScore to be used when scoring tu's.
-        *N: Number of random sampling iterations.
+    Returns the best F score, gap_penalty and threshold found
+    by random sampling.
+    `parallel corpus`: A file object for a file of alternaing lines
+                       in the languages of the model to be optimized.
+    `tu_scorer`: A TUScore to be used when scoring tu's.
+    `N`: Number of random sampling iterations.
     """
+
     best = 0, 0, 0
     align_documents = AlignDocuments(tu_scorer)
     for idx, docs in enumerate(documents(parallel_corpus)):
         A, B, alignments = training_scrambling_from_documents(*docs)
-        gap_penalty = random.uniform(0,1)
-        predicted_alignments = align_documents(A, B, gap_penalty=gap_penalty, threshold=1)
+        gap_penalty = random.uniform(0, 1)
+        predicted_alignments = align_documents(A, B, gap_penalty=gap_penalty,
+                                               threshold=1)
         score, threshold = _optimize_threshold(gap_penalty,
                                                alignments,
                                                predicted_alignments)
         if score > best[0]:
             best = score, gap_penalty, threshold
-        if idx >= N: break
+        if idx >= N:
+            break
     return best
 
 
