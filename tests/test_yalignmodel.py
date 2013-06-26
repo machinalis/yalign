@@ -40,7 +40,8 @@ class TestYalignModel(unittest.TestCase):
         self.assertTrue(os.path.exists(metadata_path))
 
     def test_save_load_and_align(self):
-        doc1 = [Sentence([u"House"], position=0)]
+        doc1 = [Sentence([u"House"], position=0),
+                Sentence([u"asoidfhuioasgh"], position=1)]
         doc2 = [Sentence(u"Casa", position=0)]
         result_before_save = self.model.align(doc1, doc2)
 
@@ -54,7 +55,7 @@ class TestYalignModel(unittest.TestCase):
         result_after_load = new_model.align(doc1, doc2)
 
         self.assertEqual(result_before_save, result_after_load)
-        self.assertEqual(len(result_after_load), 1)
+        self.assertEqual(len(result_after_load), 2)
         self.assertIn((0, 0), result_after_load)
 
     @mock.patch("yalign.optimize.optimize")
