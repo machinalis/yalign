@@ -17,7 +17,7 @@ class TestYalignModel(unittest.TestCase):
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
         word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
-        self.alignments_file = os.path.join(base_path, "data", "test_tus.csv")
+        self.alignments_file = os.path.join(base_path, "data", "test_training.csv")
         alignments = parse_training_file(self.alignments_file)
         gap_penalty = 0.499
         threshold = 1

@@ -4,7 +4,6 @@
 Document alignment functionality.
 """
 from functools import partial
-from yalign.datatypes import Sentence, SentencePair
 from yalign.sequencealigner import SequenceAligner
 
 

@@ -8,8 +8,8 @@ Usage:
 
 Options:
   -o --output=<output>             The metadata filename [default: metadata.json]
-  -s --source-lang=<language>      The Source language [default: en]
-  -t --target-lang=<language>      The target language [default: es]
+  -la --lang-a=<language>      The language of the file A [default: en]
+  -lb --lang-b=<language>      The language of the file B [default: es]
   -n --number-of-tries=<number-of-tries>  Max number of tries for optimizing [default: 100]
 """
 
@@ -28,6 +28,6 @@ if __name__ == "__main__":
     score, gap_penalty, threshold = optimize(parallel_corpus, scorer, N)
     metadata = dict(gap_penalty=gap_penalty,
                     threshold=threshold,
-                    src_lang=args['--source-lang'],
-                    tgt_lang=args['--target-lang'])
+                    lang_a=args['--lang-a'],
+                    lang_b=args['--lang-b'])
     json.dump(metadata, open(args['--output'], "w"))

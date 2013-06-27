@@ -8,7 +8,7 @@ from tempfile import mkstemp
 
 class TestGenerateSamples(unittest.TestCase):
 
-    headings = ["aligned", "src N", "src idx", "src", "tgt N", "tgt idx", "tgt"]
+    headings = ["aligned", "pos a", "a", "pos b", "b"]
 
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,7 @@ class TestGenerateSamples(unittest.TestCase):
         sub.call(cmd, shell=True)
         self.assertTrue(os.path.exists(self.outfile_name))
         reader = csv.reader(open(self.outfile_name))
-        self.assertTrue(self.headings, reader.next())
+        self.assertEquals(self.headings, reader.next())
         samples = list([sample for sample in reader])
         self.assertEquals(4, len(samples))
 

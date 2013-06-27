@@ -11,7 +11,7 @@ def default_sentence_pair_score():
     base_path = os.path.dirname(os.path.abspath(__file__))
     word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
     _, classifier_filepath = tempfile.mkstemp()
-    training_file = os.path.join(base_path, "data", "test_tus.csv")
+    training_file = os.path.join(base_path, "data", "test_training.csv")
     pairs = parse_training_file(training_file)
     classifier = SentencePairScore()
     classifier.train(pairs, WordPairScore(word_scores))

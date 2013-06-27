@@ -5,6 +5,7 @@ import nltk
 import random
 from itertools import islice
 
+
 def tokenize(text, language="en"):
     """
     Returns a Sentence with Words (ie, a list of unicode objects)
@@ -32,18 +33,22 @@ def html_to_document(html, language="en"):
 MIN_LINES = 1
 MAX_LINES = 50
 
+
 def training_samples(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
     """
-    Training sample generater. Creates samples from the provided parallel corpus.
-        *parallel_corpus: A file object of a file consists of alternating sentences
-                          in the languages.
+    Training sample generater. Creates samples from the provided
+    parallel corpus.
+        * parallel_corpus: A file object of a file consists of
+                           alternating sentences in the languages.
 
     A sample is a tuple containing:
-        {aligned: 0 or 1}, {doc A size}, {index a}, {a}, {doc B size}, {index b}, {b}
+        {aligned: 0 or 1}, {doc A size}, {index a}, {a},
+        {doc B size}, {index b}, {b}
     """
     for A, B in documents(parallel_corpus, m, n):
         for sample in training_alignments_from_documents(A, B):
             yield sample
+
 
 def documents_from_parallel_corpus(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
     """

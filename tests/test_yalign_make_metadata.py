@@ -20,8 +20,8 @@ class TestMakeMetadata(unittest.TestCase):
         sub.call(cmd, shell=True)
         self.assertTrue(os.path.exists(self.metadata_filename))
         metadata = json.load(open(self.metadata_filename))
-        self.assertEquals(metadata['src_lang'], 'en')
-        self.assertEquals(metadata['tgt_lang'], 'es')
+        self.assertEquals(metadata['lang_a'], 'en')
+        self.assertEquals(metadata['lang_b'], 'es')
         self.assertTrue(metadata['gap_penalty'] > 0)
         self.assertTrue(metadata['threshold'] > 0)
 

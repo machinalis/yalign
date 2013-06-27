@@ -3,7 +3,8 @@
 import unittest
 import os
 
-from yalign.api import *
+from yalign.api import AlignDocuments
+from yalign.datatypes import Sentence
 from helpers import default_sentence_pair_score
 
 

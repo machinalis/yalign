@@ -15,7 +15,7 @@ class TestSentencePairScore(unittest.TestCase):
         base_path = os.path.dirname(os.path.abspath(__file__))
         word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
         word_pair_score = WordPairScore(word_scores)
-        self.alignments_file = os.path.join(base_path, "data", "test_tus.csv")
+        self.alignments_file = os.path.join(base_path, "data", "test_training.csv")
         alignments = parse_training_file(self.alignments_file)
         self.score = SentencePairScore()
         self.score.train(alignments, word_pair_score)

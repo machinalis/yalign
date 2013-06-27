@@ -4,7 +4,7 @@
 Module to score the accuracy of alignments.
 """
 
-import numpy as np
+import numpy
 
 from yalign.input_conversion import documents_from_parallel_corpus
 from yalign.train_data_generation import training_scrambling_from_documents
@@ -34,7 +34,9 @@ def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
 
 
 def _stats(xs):
-    return dict(max=np.amax(xs, 0), mean=np.mean(xs, 0), std=np.std(xs, 0))
+    return dict(max=numpy.amax(xs, 0),
+                mean=numpy.mean(xs, 0),
+                std=numpy.std(xs, 0))
 
 
 def F_score(xs, ys, beta=0.1):
