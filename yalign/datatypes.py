@@ -1,25 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
-class AnotatedList(list):
-    def __init__(self, iterable=None, **kwargs):
-        self.__dict__.update(kwargs)
+class Sentence(list):
+    def __init__(self, iterable=None, position=None):
+        if position is not None:
+            if not(0 <= position <= 1):
+                raise ValueError("Position must be between 0 and 1")
+            self.position = position
         if iterable is not None:
-            super(AnotatedList, self).__init__(iterable)
+            super(Sentence, self).__init__(iterable)
         else:
-            super(AnotatedList, self).__init__()
-
-
-class Word(unicode):
-    pass
-
-
-class Sentence(AnotatedList):
-    pass
-
-
-class Document(AnotatedList):
-    pass
+            super(Sentence, self).__init__()
 
 
 class SentencePair(list):

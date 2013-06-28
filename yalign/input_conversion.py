@@ -4,7 +4,7 @@ from nltk.data import load as nltkload
 import random
 from bs4 import BeautifulSoup
 from itertools import islice
-from yalign.datatypes import Sentence, Document
+from yalign.datatypes import Sentence
 from yalign.tokenizers import get_tokenizer
 from collections import defaultdict
 
@@ -34,8 +34,8 @@ def tokenize(text, language="en"):
 
 def text_to_document(text, language="en"):
     sentence_splitter = _sentence_splitters[language]
-    return Document(tokenize(sentence, language)
-                    for sentence in sentence_splitter.tokenize(text))
+    return [tokenize(sentence, language)
+                              for sentence in sentence_splitter.tokenize(text)]
 
 
 def html_to_document(html, language="en"):
