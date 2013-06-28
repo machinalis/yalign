@@ -1,33 +1,47 @@
 # -*- coding: utf-8 -*-
 
-from yalign.datatypes import Sentence, Document
-import nltk
+from nltk.data import load as nltkload
 import random
+from bs4 import BeautifulSoup
 from itertools import islice
+from yalign.datatypes import Sentence, Document
+from yalign.tokenizers import get_tokenizer
+from collections import defaultdict
+
+
+class Memoized(defaultdict):
+    def __missing__(self, key):
+        x = self.default_factory(key)
+        self[key] = x
+        return x
+
+
+_tokenizers = Memoized(lambda lang: get_tokenizer(lang))
+_punkt = {"en": "tokenizers/punkt/english.pickle",
+                  "es": "tokenizers/punkt/spanish.pickle",
+                  "pt": "tokenizers/punkt/portuguese.pickle"}
+_sentence_splitters = Memoized(lambda lang: nltkload(_punkt[lang]))
 
 
 def tokenize(text, language="en"):
     """
     Returns a Sentence with Words (ie, a list of unicode objects)
     """
-    # FIXME: Implement, using a proper tokenizer
-    return Sentence(text.split())
+    if not isinstance(text, unicode):
+        raise ValueError("Can only tokenize unicode strings")
+    return Sentence(_tokenizers[language].tokenize(text))
 
 
 def text_to_document(text, language="en"):
-    # FIXME: Implement
-    # FIXME: Add multi-language options. See:
-    #    en = nltk.data.load('tokenizers/punkt/english.pickle')
-    #    sp = nltk.data.load('tokenizers/punkt/spanish.pickle')
-    #    pt = nltk.data.load('tokenizers/punkt/portuguese.pickle')
-    sentence_splitter = nltk.data.load('tokenizers/punkt/english.pickle')
+    sentence_splitter = _sentence_splitters[language]
     return Document(tokenize(sentence, language)
-                    for sentence in sentence_splitter(text))
+                    for sentence in sentence_splitter.tokenize(text))
 
 
 def html_to_document(html, language="en"):
-    # FIXME: implement
-    pass
+    soup = BeautifulSoup(html)
+    text = soup.body.get_text()
+    return text_to_document(text, language)
 
 
 MIN_LINES = 1
