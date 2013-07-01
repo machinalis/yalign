@@ -73,7 +73,7 @@ class TestYalignModel(unittest.TestCase):
         self.model.optimize_gap_penalty_and_threshold(self.A, self.B,
                                                       self.correct_alignments)
 
-    
+
     def test_optimize_gap_penalty_and_threshold_is_best(self):
         self.assertTrue(False)  # This test requieres more thinking.
         def evaluate(penalty, threshold):
@@ -97,7 +97,7 @@ class TestYalignModel(unittest.TestCase):
 class TestOptimizers(unittest.TestCase):
     def test_random_sampling_maximizer_maximizes(self):
         def F(x):
-            return x * x + 1
+            return x * x * x + 1
         random.seed(hash("Knock knock motherfucker"))
         score, x = random_sampling_maximizer(F, -1, 1, n=100)
         self.assertGreater(x, 0.9)
