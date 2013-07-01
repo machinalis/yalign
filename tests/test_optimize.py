@@ -12,7 +12,7 @@ class TestOptimize(unittest.TestCase):
         self.classifier, _ = default_sentence_pair_score()
 
     def test_optimize(self):
-        score, gap_penalty, threshold = optimize(open(self.parallel_corpus),
+        score, gap_penalty, threshold = optimize(self.parallel_corpus,
                                                  self.classifier)
         self.assertTrue(score > 0 and gap_penalty > 0 and threshold > 0)
 

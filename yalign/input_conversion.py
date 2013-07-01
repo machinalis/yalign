@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from nltk.data import load as nltkload
-import random
+import codecs
 from bs4 import BeautifulSoup
-from itertools import islice
+from collections import defaultdict
+from nltk.data import load as nltkload
+
 from yalign.datatypes import Sentence
 from yalign.tokenizers import get_tokenizer
-from collections import defaultdict
 
 
 class Memoized(defaultdict):
@@ -16,10 +16,12 @@ class Memoized(defaultdict):
         return x
 
 
+_punkt = {
+    "en": "tokenizers/punkt/english.pickle",
+    "es": "tokenizers/punkt/spanish.pickle",
+    "pt": "tokenizers/punkt/portuguese.pickle"
+}
 _tokenizers = Memoized(lambda lang: get_tokenizer(lang))
-_punkt = {"en": "tokenizers/punkt/english.pickle",
-                  "es": "tokenizers/punkt/spanish.pickle",
-                  "pt": "tokenizers/punkt/portuguese.pickle"}
 _sentence_splitters = Memoized(lambda lang: nltkload(_punkt[lang]))
 
 
@@ -35,7 +37,7 @@ def tokenize(text, language="en"):
 def text_to_document(text, language="en"):
     sentence_splitter = _sentence_splitters[language]
     return [tokenize(sentence, language)
-                              for sentence in sentence_splitter.tokenize(text)]
+            for sentence in sentence_splitter.tokenize(text)]
 
 
 def html_to_document(html, language="en"):
@@ -44,46 +46,66 @@ def html_to_document(html, language="en"):
     return text_to_document(text, language)
 
 
-MIN_LINES = 1
-MAX_LINES = 50
-
-
-def training_samples(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
+def parallel_corpus_to_documents(filepath):
     """
-    Training sample generater. Creates samples from the provided
-    parallel corpus.
-        * parallel_corpus: A file object of a file consists of
-                           alternating sentences in the languages.
+    Transforms a parallel corpus file format into two
+    documents.
+    The Parallel corpus has:
 
-    A sample is a tuple containing:
-        {aligned: 0 or 1}, {doc A size}, {index a}, {a},
-        {doc B size}, {index b}, {b}
+        * One sentences per line.
+        * One line of each language.
+        * Sentences are tokenized and tokens are space separated.
+        * The file encoding is UTF-8
+
+    For example:
+
+        This is a sentence .
+        Esto es una oración .
+        And this , my friend , is another .
+        Y esta , mi amigo , es otra .
+
     """
-    for A, B in documents(parallel_corpus, m, n):
-        for sample in training_alignments_from_documents(A, B):
-            yield sample
+
+    handler = iter(codecs.open(filepath, encoding="utf-8"))
+    document_a = []
+    document_b = []
+    total_lines = 0
+
+    while True:
+        try:
+            line_a = next(handler)
+            line_b = next(handler)
+        except StopIteration:
+            break
+
+        document_a.append(Sentence(line_a.split()))
+        document_b.append(Sentence(line_b.split()))
+        total_lines += 1
+
+    i = 0.0
+    for a, b in zip(document_a, document_b):
+        position = i / total_lines
+        a.position = position
+        b.position = position
+        i += 1.0
+
+        for word_a, word_b in zip(a, b):
+            message = u"Word {!r} is not tokenized"
+            if not _is_tokenized(word_a):
+                raise ValueError(message.format(word_a))
+            if not _is_tokenized(word_b):
+                raise ValueError(message.format(word_b))
+
+    return document_a, document_b
 
 
-def documents_from_parallel_corpus(parallel_corpus, m=MIN_LINES, n=MAX_LINES):
+def _is_tokenized(word):
     """
-    Document generator. Documents are created from the parallel corpus and
-    will be between m and n lines long.
+    Runs some checks to see if the word is tokenized.
+    Note: if this functions returns True doesn't mean is really tokenized, but
+    if returns False you know it's not tokenized propperly.
     """
-    m = m if m > 0 else 1
-    N = random.randint(m, n)
-    A, B = _next_documents(parallel_corpus, N)
-    while len(A) >= m and len(B) >= m:
-        yield A, B
-        N = random.randint(m, n)
-        A, B = _next_documents(parallel_corpus, N)
 
-
-def _sentences(xs):
-    return [tokenize(x) for x in xs]
-
-
-def _next_documents(reader, N):
-    """Read the next documents. Each document will be N lines long."""
-    n = N * 2
-    lines = [x.decode('utf-8') for x in islice(reader, n)]
-    return _sentences(lines[0:n:2]), _sentences(lines[1:n:2])
+    # FIXME: add harder checks
+    return not ((word.endswith(".") or word.endswith(",")) and \
+                word[:-1].isalpha())

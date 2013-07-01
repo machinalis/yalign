@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
+import os
+import codecs
+import tempfile
 import unittest
 from StringIO import StringIO
-import os
 
 from yalign.datatypes import Sentence
-from yalign.input_conversion import documents_from_parallel_corpus, tokenize, \
-                                    text_to_document, html_to_document
+from yalign.input_conversion import tokenize, text_to_document, \
+    html_to_document, parallel_corpus_to_documents
 
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -16,27 +18,6 @@ data_path = os.path.join(base_path, "data")
 
 def reader(N):
     return StringIO('\n'.join([str(x) for x in xrange(N)]))
-
-
-class TestDocumentsFromParallelCorpus(unittest.TestCase):
-
-    def test_empty_input(self):
-        self.assertEquals([], list(documents_from_parallel_corpus(StringIO())))
-
-
-    def test_document_sizes_between_min_and_max(self):
-        cnt, m, n = 0, 5, 10
-        N = 10000
-        for A, B in documents_from_parallel_corpus(reader(N * 2), m, n):
-            self.assertTrue(m <= len(A) <= n)
-            self.assertTrue(m <= len(B) <= n)
-            cnt += 1
-        self.assertTrue(N / n <= cnt <= N / m)
-
-    def test_no_zero_as_min(self):
-        for A, B in documents_from_parallel_corpus(reader(20), 0, 1):
-            self.assertTrue(1 <= len(A) <= 1)
-            self.assertTrue(1 <= len(B) <= 1)
 
 
 class BaseTestTokenization(object):
@@ -57,7 +38,7 @@ class TestTokenizationEn1(BaseTestTokenization, unittest.TestCase):
     language = "en"
     text = u"The dog is hungry.The cat is evil."
     expected = u"dog hungry evil ."
-    
+
 
 class TestTokenizationEn2(BaseTestTokenization, unittest.TestCase):
     language = "en"
@@ -199,6 +180,35 @@ class TestHtmlToDocument(unittest.TestCase):
             self.assertIsInstance(sentence, Sentence)
             for word in sentence:
                 self.assertIsInstance(word, unicode)
+
+
+class TestParallelCorpusDocument(unittest.TestCase):
+    def setUp(self):
+        document_path = os.path.join(data_path, "parallel-en-es.txt")
+        A, B = parallel_corpus_to_documents(document_path)
+        self.document_a = A
+        self.document_b = B
+
+    def test_same_length(self):
+        self.assertEqual(len(self.document_a), len(self.document_b))
+        self.assertEqual(len(self.document_a), 250)
+
+    def test_has_position(self):
+        for sentence_a, sentence_b in zip(self.document_a, self.document_b):
+            self.assertTrue(hasattr(sentence_a, "position"))
+            self.assertTrue(hasattr(sentence_b, "position"))
+
+    def test_do_not_accept_non_tokenized_documents(self):
+        _, tmpfile = tempfile.mkstemp()
+        inputfile = codecs.open(tmpfile, "w", encoding="utf-8")
+        inputfile.write("some non tokenized sentences.\n")
+        inputfile.write("some non tokenized sentences.\n")
+        inputfile.write("so, this is John's?\n")
+        inputfile.write("so, this is John's?\n")
+        inputfile.close()
+
+        with self.assertRaises(ValueError):
+            A, B = parallel_corpus_to_documents(tmpfile)
 
 
 if __name__ == "__main__":

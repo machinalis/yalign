@@ -38,7 +38,7 @@ class WordPairScore(ScoreFunction):
 
         # FIXME: Consider moving this to a test
         if not isinstance(word_a, unicode) or not isinstance(word_b, unicode):
-            raise ValueError("Source and target words must be unicode")
+            raise ValueError("Word A and word B words must be unicode")
         if word_a.count(u" ") or word_b.count(u" "):
             raise ValueError("Words cannot have spaces")
 

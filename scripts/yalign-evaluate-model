@@ -22,7 +22,7 @@ def print_stats(stats):
     
 if __name__ == "__main__":
     args = docopt(__doc__)
-    parallel_corpus = open(args["<parallel-corpus>"])
+    parallel_corpus = args["<parallel-corpus>"]
     metadata = json.load(open(args["<metadata>"]))
     gap_penalty = metadata['gap_penalty']
     threshold = metadata['threshold']

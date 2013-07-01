@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import unittest
 import os
 import json
+import tempfile
+import unittest
+import subprocess
 from itertools import izip
 
-from helpers import default_sentence_pair_score
+from yalign import yalignmodel
 from yalign.evaluation import *
+from helpers import default_sentence_pair_score
+from yalign.input_conversion import parallel_corpus_to_documents
 
 
 class TestFScore(unittest.TestCase):

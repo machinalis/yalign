@@ -148,4 +148,3 @@ def html_to_corpus(html_text):
     soup = BeautifulSoup(html_text)
     text = soup.body.get_text()
     return text_to_corpus(text)
-
