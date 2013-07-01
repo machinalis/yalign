@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 """
-Evaluate how many alignments are found from a document pair.
+Evaluate how many word alignments are found from a document pair.
 
 Usage:
-    yalign-evaluate-alignment <parallel-corpus> <model>
+    yalign-evaluate-word-alignment <parallel-corpus> <model>
 """
 
 from docopt import docopt
 from yalign.yalignmodel import YalignModel
-from yalign.evaluation import alignment_percentage
+from yalign.evaluation import word_alignment_percentage
 from yalign.input_conversion import parallel_corpus_to_documents
 
 
@@ -20,5 +20,6 @@ if __name__ == "__main__":
     modelpath = args["<model>"]
     model = YalignModel()
     model.load(modelpath)
-    p = alignment_percentage(A, B, model)
-    print "Aligment percentage: {}%".format(p)
+
+    p = word_alignment_percentage(A, B, model)
+    print "Word aligment percentage: {}%".format(p)

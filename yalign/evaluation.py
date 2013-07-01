@@ -8,6 +8,7 @@ import os
 import numpy
 
 from yalign.api import AlignDocuments
+from yalign.sequencealigner import SequenceAligner
 from yalign.input_conversion import parallel_corpus_to_documents
 from yalign.train_data_generation import training_scrambling_from_documents
 
@@ -81,21 +82,43 @@ def alignment_percentage(document_a, document_b, model):
     `model` can be a YalignModel or a path to a yalign model.
     The return value it's a float between 0.0 and 100.0
     """
-    # FIXME: Use in-memory model instead of path.
-    from yalign.yalignmodel import YalignModel
-    if isinstance(model, basestring):
-        if not os.path.exists(model):
-            raise ValueError(u"Invalid model path: {}".format(model))
-        path = model
-        model = YalignModel()
-        model.load(path)
-    elif not isinstance(model, YalignModel):
-        raise ValueError(u"Invalid model")
 
     if len(document_a) == 0 and len(document_b) == 0:
-        return 1.0
+        return 100.0
 
     align = model.align(document_a, document_b)
     align = [x for x in align if x[0] is not None and x[1] is not None]
     ratio = len(align) / float(max(len(document_a), len(document_b)))
     return round(ratio * 100, 2)
+
+
+def word_alignment_percentage(document_a, document_b, model):
+    """
+    Returns the percentage of word alignments of `document_a` and `document_b`
+    `document_a` and `document_b` are yalign documents.
+    `model` can be a YalignModel or a path to a yalign model.
+    The return value it's a float between 0.0 and 100.0
+    """
+
+    wordcount_a = sum([len(sentence) for sentence in document_a])
+    wordcount_b = sum([len(sentence) for sentence in document_b])
+    wordcount_aligned = 0.0
+
+    if wordcount_a == 0 or wordcount_b == 0:
+        return 100.0 if (wordcount_a == 0 and wordcount_b == 0) else 0.0
+
+    sentence_align = model.document_pair_aligner(document_a, document_b)
+    sentence_align = [x for x in sentence_align if
+                      x[0] is not None and x[1] is not None]
+
+    word_aligner = SequenceAligner(model.word_pair_score, 4.999)
+    for pair in sentence_align:
+        sentence_a = document_a[pair[0]]
+        sentence_b = document_a[pair[1]]
+        word_align = word_aligner(sentence_a, sentence_b)
+        word_align = [x for x in word_align if
+                      x[0] is not None and x[1] is not None]
+        wordcount_aligned += len(word_align)
+
+    ratio = wordcount_aligned / min(wordcount_a, wordcount_b)
+    return round(ratio * 100.0, 2)

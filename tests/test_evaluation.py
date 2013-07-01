@@ -10,8 +10,15 @@ from itertools import izip
 
 from yalign import yalignmodel
 from yalign.evaluation import *
-from helpers import default_sentence_pair_score
+from yalign.wordpairscore import WordPairScore
+from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parallel_corpus_to_documents
+from yalign.train_data_generation import training_alignments_from_documents
+
+from helpers import default_sentence_pair_score
+
+basepath = os.path.dirname(os.path.abspath(__file__))
+data_path = os.path.join(basepath, "data")
 
 
 class TestFScore(unittest.TestCase):
@@ -54,9 +61,8 @@ class TestFScore(unittest.TestCase):
 class TestEvaluate(unittest.TestCase):
 
     def setUp(self):
-        base_path = os.path.dirname(os.path.abspath(__file__))
-        self.parallel_corpus = os.path.join(base_path, "data", "canterville.txt")
-        metadata_filename = os.path.join(base_path, "data", "metadata.json")
+        self.parallel_corpus = os.path.join(data_path, "canterville.txt")
+        metadata_filename = os.path.join(data_path, "metadata.json")
         metadata = json.load(open(metadata_filename))
         self.gap_penalty = metadata['gap_penalty']
         self.threshold = metadata['threshold']
@@ -76,10 +82,9 @@ class TestEvaluate(unittest.TestCase):
 
 class TestAlignmentPercentage(unittest.TestCase):
     def setUp(self):
-        basepath = os.path.dirname(os.path.abspath(__file__))
-        self.parallel_corpus = os.path.join(basepath, "data", "canterville.txt")
-        word_scores = os.path.join(basepath, "data", "test_word_scores.csv")
-        training_filepath = os.path.join(basepath, "data", "test_training.csv")
+        self.parallel_corpus = os.path.join(data_path, "canterville.txt")
+        word_scores = os.path.join(data_path, "test_word_scores.csv")
+        training_filepath = os.path.join(data_path, "test_training.csv")
         self.model = yalignmodel.basic_model(word_scores, training_filepath)
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
         self.document_a = A
@@ -87,7 +92,7 @@ class TestAlignmentPercentage(unittest.TestCase):
 
     def test_empty_percentage(self):
         p = alignment_percentage([], [], self.model)
-        self.assertEqual(p, 1.0)
+        self.assertEqual(p, 100.0)
 
     def test_empty2_percentage(self):
         p = alignment_percentage(self.document_a, [], self.model)
@@ -101,13 +106,6 @@ class TestAlignmentPercentage(unittest.TestCase):
         p = alignment_percentage(self.document_a, self.document_b, self.model)
         self.assertEqual(p, 50.0)
 
-    def test_model_filepath(self):
-        tmpdir = tempfile.mkdtemp()
-        self.model.save(tmpdir)
-        p = alignment_percentage([], self.document_b, tmpdir)
-        p = p + alignment_percentage(self.document_a, [], tmpdir)
-        self.assertEqual(p, 0.0)
-
     def test_command_tool(self):
         tmpdir = tempfile.mkdtemp()
         _, tmpfile = tempfile.mkstemp()
@@ -119,6 +117,33 @@ class TestAlignmentPercentage(unittest.TestCase):
         outputfh = open(tmpfile)
         output = outputfh.read()
         self.assertTrue("50.0%" in output)
+
+
+class TestWordAlignmentPercentage(unittest.TestCase):
+    def setUp(self):
+        self.parallel_corpus = os.path.join(data_path, "canterville.txt")
+        word_scores = os.path.join(data_path, "test_word_scores.csv")
+        training_filepath = os.path.join(data_path, "test_training.csv")
+        self.model = yalignmodel.basic_model(word_scores, training_filepath)
+        A, B = parallel_corpus_to_documents(self.parallel_corpus)
+        self.document_a = A
+        self.document_b = B
+
+    def test_empty_percentage(self):
+        p = word_alignment_percentage([], [], self.model)
+        self.assertEqual(p, 100.0)
+
+    def test_empty2_percentage(self):
+        p = word_alignment_percentage(self.document_a, [], self.model)
+        self.assertEqual(p, 0.0)
+
+    def test_empty3_percentage(self):
+        p = word_alignment_percentage([], self.document_b, self.model)
+        self.assertEqual(p, 0.0)
+
+    def test_alignment(self):
+        p = word_alignment_percentage(self.document_a, self.document_b, self.model)
+        self.assertTrue(0.0 <= p <= 100.0)
 
 
 if __name__ == "__main__":
