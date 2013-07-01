@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 import subprocess
+import random
 from itertools import izip
 
 from yalign import yalignmodel
@@ -62,6 +63,7 @@ class TestEvaluate(unittest.TestCase):
         self.classifier, _ = default_sentence_pair_score()
 
     def test_evaluate(self):
+        random.seed(123)
         stats = evaluate(self.parallel_corpus,
                          self.classifier,
                          self.gap_penalty,

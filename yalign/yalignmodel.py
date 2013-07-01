@@ -11,9 +11,27 @@ from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.input_parsing import parse_training_file
 from yalign.sentencepairscore import SentencePairScore
+from yalign.evaluation import F_score
 
 
-# FIXME: this class is untried, complete
+# FIXME: This class does not optimize gap_penalty and threshold, do.
+def basic_model(word_scores_filepath, training_filepath,
+                gap_penalty=0.49, threshold=1):
+    """
+    Returns a model with the default score functions.
+    """
+    # Word score
+    word_pair_score = WordPairScore(word_scores_filepath)
+    # Sentence Score
+    alignments = parse_training_file(training_filepath)
+    sentence_pair_score = SentencePairScore()
+    sentence_pair_score.train(alignments, word_pair_score)
+    # Yalign model
+    document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
+    model = YalignModel(document_aligner, threshold)
+    return model
+
+
 class YalignModel(object):
     def __init__(self, document_pair_aligner=None, threshold=None):
         self.document_pair_aligner = document_pair_aligner
@@ -33,6 +51,10 @@ class YalignModel(object):
         return self.sentence_pair_aligner.score
 
     def align(self, document_a, document_b):
+        alignments = self.align_indexes(document_a, document_b)
+        return [(document_a[a], document_b[b]) for a, b in alignments]
+
+    def align_indexes(self, document_a, document_b):
         """
         Try to recover aligned sentences from the comparable documents
         `document_a` and `document_b`.
@@ -40,7 +62,8 @@ class YalignModel(object):
         the model was trained for.
         """
         alignments = self.document_pair_aligner(document_a, document_b)
-        return [(a, b) for a, b, score in alignments if score < self.threshold]
+        alignments = pre_filter_alignments(alignments)
+        return apply_threshold(alignments, self.threshold)
 
     def load(self, model_directory, load_data=True):
         metadata = os.path.join(model_directory, "metadata.json")
@@ -56,11 +79,20 @@ class YalignModel(object):
         self.metadata.threshold = self.threshold
         pickle.dump(dict(self.metadata), open(metadata, "w"))
 
-    def optimize_gap_penalty_and_threshold(self, parallel_corpus):
-        from yalign.optimize import optimize
-        score, gap_penalty, threshold = optimize(parallel_corpus,
-                                                 self.sentence_pair_aligner)
+    def optimize_gap_penalty_and_threshold(self, document_a, document_b,
+                                                              real_alignments):
+        def F(x):
+            return score_with_best_threshold(self.document_pair_aligner,
+                                             document_a, document_b,
+                                             x,
+                                             real_alignments)
+        min_ = self.sentence_pair_score.min_bound
+        max_ = self.sentence_pair_score.max_bound
+        _, gap_penalty = random_sampling_maximizer(F, min_, max_ / 2.0, n=10)
         self.document_pair_aligner.penalty = gap_penalty
+        alignments = self.document_pair_aligner(document_a, document_b)
+        alignments = pre_filter_alignments(alignments)
+        _, threshold = best_threshold(real_alignments, alignments)
         self.threshold = threshold
 
 
@@ -75,18 +107,45 @@ class MetadataHelper(dict):
         self[key] = value
 
 
-def basic_model(word_scores_filepath, training_filepath,
-                gap_penalty=0.49, threshold=1):
-    """
-    Returns a model with the default score functions.
-    """
-    # Word score
-    word_pair_score = WordPairScore(word_scores_filepath)
-    # Sentence Score
-    alignments = parse_training_file(training_filepath)
-    sentence_pair_score = SentencePairScore()
-    sentence_pair_score.train(alignments, word_pair_score)
-    # Yalign model
-    document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
-    model = YalignModel(document_aligner, threshold)
-    return model
+def pre_filter_alignments(alignments):
+    return [(a, b, c) for a, b, c in alignments if a is not None and
+                                                   b is not None]
+
+
+def apply_threshold(alignments, threshold):
+    return [(a, b) for a, b, c in alignments if c <= threshold]
+
+
+def best_threshold(real_alignments, predicted_alignments):
+    """Returns the best F score and threshold value for this gap_penalty"""
+    if not predicted_alignments:
+        raise ValueError("predicted_alignments cannot be empty")
+    best = -1, None
+    for _, _, threshold in predicted_alignments:
+        xs = apply_threshold(predicted_alignments, threshold)
+        score = F_score(xs, real_alignments)[0]
+        if score > best[0]:
+            best = score, threshold
+    return best
+
+
+def score_with_best_threshold(aligner, xs, ys, gap_penalty, real_alignments):
+    predicted_alignments = aligner(xs, ys, penalty=gap_penalty)
+    predicted_alignments = pre_filter_alignments(predicted_alignments)
+    if not predicted_alignments:
+        return 0
+    score, threshold = best_threshold(real_alignments, predicted_alignments)
+    return score
+
+
+def random_sampling_maximizer(F, min_, max_, n=20):
+    if n < 1:
+        raise ValueError("n must be 1 or more")
+    x = random.uniform(min_, max_)
+    best = F(x), x
+    for _ in xrange(n - 1):
+        x = random.uniform(min_, max_)
+        score = F(x)
+        if score > best[0]:
+            best = score, x
+    return best

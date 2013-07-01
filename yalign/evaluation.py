@@ -8,7 +8,6 @@ import os
 import numpy
 
 from yalign.api import AlignDocuments
-from yalign.yalignmodel import YalignModel
 from yalign.input_conversion import parallel_corpus_to_documents
 from yalign.train_data_generation import training_scrambling_from_documents
 
@@ -82,7 +81,8 @@ def alignment_percentage(document_a, document_b, model):
     `model` can be a YalignModel or a path to a yalign model.
     The return value it's a float between 0.0 and 100.0
     """
-
+    # FIXME: Use in-memory model instead of path.
+    from yalign.yalignmodel import YalignModel
     if isinstance(model, basestring):
         if not os.path.exists(model):
             raise ValueError(u"Invalid model path: {}".format(model))
