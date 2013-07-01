@@ -7,7 +7,10 @@ try:
 except ImportError:
     import pickle
 
-from yalign import optimize
+from yalign.wordpairscore import WordPairScore
+from yalign.sequencealigner import SequenceAligner
+from yalign.input_parsing import parse_training_file
+from yalign.sentencepairscore import SentencePairScore
 
 
 # FIXME: this class is untried, complete
@@ -54,8 +57,9 @@ class YalignModel(object):
         pickle.dump(dict(self.metadata), open(metadata, "w"))
 
     def optimize_gap_penalty_and_threshold(self, parallel_corpus):
-        score, gap_penalty, threshold = optimize.optimize(parallel_corpus,
-            self.sentence_pair_aligner)
+        from yalign.optimize import optimize
+        score, gap_penalty, threshold = optimize(parallel_corpus,
+                                                 self.sentence_pair_aligner)
         self.document_pair_aligner.penalty = gap_penalty
         self.threshold = threshold
 
@@ -69,3 +73,20 @@ class MetadataHelper(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
+
+
+def basic_model(word_scores_filepath, training_filepath,
+                gap_penalty=0.49, threshold=1):
+    """
+    Returns a model with the default score functions.
+    """
+    # Word score
+    word_pair_score = WordPairScore(word_scores_filepath)
+    # Sentence Score
+    alignments = parse_training_file(training_filepath)
+    sentence_pair_score = SentencePairScore()
+    sentence_pair_score.train(alignments, word_pair_score)
+    # Yalign model
+    document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
+    model = YalignModel(document_aligner, threshold)
+    return model

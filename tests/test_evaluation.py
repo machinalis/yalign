@@ -71,5 +71,53 @@ class TestEvaluate(unittest.TestCase):
         for x in stats['std']:
             self.assertTrue(x > 0)
 
+
+class TestAlignmentPercentage(unittest.TestCase):
+    def setUp(self):
+        basepath = os.path.dirname(os.path.abspath(__file__))
+        self.parallel_corpus = os.path.join(basepath, "data", "canterville.txt")
+        word_scores = os.path.join(basepath, "data", "test_word_scores.csv")
+        training_filepath = os.path.join(basepath, "data", "test_training.csv")
+        self.model = yalignmodel.basic_model(word_scores, training_filepath)
+        A, B = parallel_corpus_to_documents(self.parallel_corpus)
+        self.document_a = A
+        self.document_b = B
+
+    def test_empty_percentage(self):
+        p = alignment_percentage([], [], self.model)
+        self.assertEqual(p, 1.0)
+
+    def test_empty2_percentage(self):
+        p = alignment_percentage(self.document_a, [], self.model)
+        self.assertEqual(p, 0.0)
+
+    def test_empty3_percentage(self):
+        p = alignment_percentage([], self.document_b, self.model)
+        self.assertEqual(p, 0.0)
+
+    def test_alignment(self):
+        p = alignment_percentage(self.document_a, self.document_b, self.model)
+        self.assertEqual(p, 50.0)
+
+    def test_model_filepath(self):
+        tmpdir = tempfile.mkdtemp()
+        self.model.save(tmpdir)
+        p = alignment_percentage([], self.document_b, tmpdir)
+        p = p + alignment_percentage(self.document_a, [], tmpdir)
+        self.assertEqual(p, 0.0)
+
+    def test_command_tool(self):
+        tmpdir = tempfile.mkdtemp()
+        _, tmpfile = tempfile.mkstemp()
+        self.model.save(tmpdir)
+
+        cmd = "yalign-evaluate-alignment %s %s" % (self.parallel_corpus, tmpdir)
+        outputfh = open(tmpfile, "w")
+        subprocess.call(cmd, shell=True, stdout=outputfh)
+        outputfh = open(tmpfile)
+        output = outputfh.read()
+        self.assertTrue("50.0%" in output)
+
+
 if __name__ == "__main__":
     unittest.main()

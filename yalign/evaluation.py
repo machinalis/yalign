@@ -4,11 +4,13 @@
 Module to score the accuracy of alignments.
 """
 
+import os
 import numpy
 
-from yalign.input_conversion import documents_from_parallel_corpus
-from yalign.train_data_generation import training_scrambling_from_documents
 from yalign.api import AlignDocuments
+from yalign.yalignmodel import YalignModel
+from yalign.input_conversion import parallel_corpus_to_documents
+from yalign.train_data_generation import training_scrambling_from_documents
 
 
 def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
@@ -68,6 +70,32 @@ def recall(xs, ys):
 def documents(parallel_corpus):
     """Provides an endless stream of documents"""
     while True:
-        for A, B in documents_from_parallel_corpus(parallel_corpus):
-            yield A, B
-        parallel_corpus.seek(0)
+        A, B = parallel_corpus_to_documents(parallel_corpus)
+        yield A, B
+
+
+def alignment_percentage(document_a, document_b, model):
+    """
+    Returns the percentage of alignments of `document_a` and `document_b`
+    using the model.
+    `document_a` and `document_b` are yalign documents.
+    `model` can be a YalignModel or a path to a yalign model.
+    The return value it's a float between 0.0 and 100.0
+    """
+
+    if isinstance(model, basestring):
+        if not os.path.exists(model):
+            raise ValueError(u"Invalid model path: {}".format(model))
+        path = model
+        model = YalignModel()
+        model.load(path)
+    elif not isinstance(model, YalignModel):
+        raise ValueError(u"Invalid model")
+
+    if len(document_a) == 0 and len(document_b) == 0:
+        return 1.0
+
+    align = model.align(document_a, document_b)
+    align = [x for x in align if x[0] is not None and x[1] is not None]
+    ratio = len(align) / float(max(len(document_a), len(document_b)))
+    return round(ratio * 100, 2)
