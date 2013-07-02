@@ -10,10 +10,8 @@ from itertools import izip
 
 from yalign import yalignmodel
 from yalign.evaluation import *
-from yalign.wordpairscore import WordPairScore
-from yalign.sentencepairscore import SentencePairScore
+from yalign.yalignmodel import YalignModel
 from yalign.input_conversion import parallel_corpus_to_documents
-from yalign.train_data_generation import training_alignments_from_documents
 
 from helpers import default_sentence_pair_score
 
@@ -80,70 +78,86 @@ class TestEvaluate(unittest.TestCase):
             self.assertTrue(x > 0)
 
 
-class TestAlignmentPercentage(unittest.TestCase):
+class BaseTestPercentage(object):
+    cmdline = None
+
     def setUp(self):
         self.parallel_corpus = os.path.join(data_path, "canterville.txt")
-        word_scores = os.path.join(data_path, "test_word_scores.csv")
+        word_scores = os.path.join(data_path, "test_word_scores_big.csv")
         training_filepath = os.path.join(data_path, "test_training.csv")
         self.model = yalignmodel.basic_model(word_scores, training_filepath)
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
         self.document_a = A
         self.document_b = B
 
+    @staticmethod
+    def alignment_function(document_a, document_b, model):
+        raise NotImplementedError()
+
     def test_empty_percentage(self):
-        p = alignment_percentage([], [], self.model)
+        p = self.alignment_function([], [], self.model)
         self.assertEqual(p, 100.0)
 
     def test_empty2_percentage(self):
-        p = alignment_percentage(self.document_a, [], self.model)
+        p = self.alignment_function(self.document_a, [], self.model)
         self.assertEqual(p, 0.0)
 
     def test_empty3_percentage(self):
-        p = alignment_percentage([], self.document_b, self.model)
+        p = self.alignment_function([], self.document_b, self.model)
         self.assertEqual(p, 0.0)
 
-    def test_alignment(self):
-        p = alignment_percentage(self.document_a, self.document_b, self.model)
-        self.assertEqual(p, 50.0)
+    def test_valid_value(self):
+        p = self.alignment_function(self.document_a, self.document_b, self.model)
+        self.assertTrue(0.0 <= p <= 100.0)
 
     def test_command_tool(self):
+        if self.cmdline is None:
+            return
+
         tmpdir = tempfile.mkdtemp()
         _, tmpfile = tempfile.mkstemp()
         self.model.save(tmpdir)
 
-        cmd = "yalign-evaluate-alignment %s %s" % (self.parallel_corpus, tmpdir)
+        cmd = self.cmdline.format(corpus=self.parallel_corpus, model=tmpdir)
         outputfh = open(tmpfile, "w")
         subprocess.call(cmd, shell=True, stdout=outputfh)
         outputfh = open(tmpfile)
         output = outputfh.read()
-        self.assertTrue("50.0%" in output)
 
-
-class TestWordAlignmentPercentage(unittest.TestCase):
-    def setUp(self):
-        self.parallel_corpus = os.path.join(data_path, "canterville.txt")
-        word_scores = os.path.join(data_path, "test_word_scores.csv")
-        training_filepath = os.path.join(data_path, "test_training.csv")
-        self.model = yalignmodel.basic_model(word_scores, training_filepath)
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
-        self.document_a = A
-        self.document_b = B
+        model = YalignModel()
+        model.load(tmpdir)
+        value = self.alignment_function(A, B, model)
 
-    def test_empty_percentage(self):
-        p = word_alignment_percentage([], [], self.model)
-        self.assertEqual(p, 100.0)
+        self.assertIn("{}%".format(value), output)
 
-    def test_empty2_percentage(self):
-        p = word_alignment_percentage(self.document_a, [], self.model)
-        self.assertEqual(p, 0.0)
 
-    def test_empty3_percentage(self):
-        p = word_alignment_percentage([], self.document_b, self.model)
-        self.assertEqual(p, 0.0)
+class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
+    cmdline = "yalign-evaluate-alignment {corpus} {model}"
+
+    @staticmethod
+    def alignment_function(document_a, document_b, model):
+        return alignment_percentage(document_a, document_b, model)
 
     def test_alignment(self):
-        p = word_alignment_percentage(self.document_a, self.document_b, self.model)
-        self.assertTrue(0.0 <= p <= 100.0)
+        p = self.alignment_function(self.document_a, self.document_b, self.model)
+        self.assertEqual(p, 50.0)
+
+
+class TestWordAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
+    cmdline = "yalign-evaluate-word-alignment {corpus} {model}"
+
+    @staticmethod
+    def alignment_function(document_a, document_b, model):
+        return word_alignment_percentage(document_a, document_b, model)
+
+
+class TestTranslationPercentage(BaseTestPercentage, unittest.TestCase):
+    cmdline = "yalign-evaluate-translations-alignment {corpus} {model}"
+
+    @staticmethod
+    def alignment_function(document_a, document_b, model):
+        return word_translations_percentage(document_a, document_b, model)
 
 
 if __name__ == "__main__":
