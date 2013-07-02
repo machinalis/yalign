@@ -2,15 +2,18 @@
 
 import os
 import json
+import random
 import tempfile
 import unittest
 import subprocess
-import random
 from itertools import izip
 
 from yalign import yalignmodel
 from yalign.evaluation import *
 from yalign.yalignmodel import YalignModel
+from yalign.wordpairscore import WordPairScore
+from yalign.sequencealigner import SequenceAligner
+from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parallel_corpus_to_documents
 
 from helpers import default_sentence_pair_score
@@ -158,6 +161,56 @@ class TestTranslationPercentage(BaseTestPercentage, unittest.TestCase):
     @staticmethod
     def alignment_function(document_a, document_b, model):
         return word_translations_percentage(document_a, document_b, model)
+
+
+class TestClassifierPrecision(unittest.TestCase):
+    def setUp(self):
+        word_scores = os.path.join(data_path, "test_word_scores_big.csv")
+        self.parallel_corpus = os.path.join(data_path, "parallel-en-es.txt")
+        # Documents
+        A, B = parallel_corpus_to_documents(self.parallel_corpus)
+        self.document_a = A[:30]
+        self.document_b = B[:30]
+        training = training_alignments_from_documents(self.document_a,
+                                                      self.document_b)
+        # Word score
+        word_pair_score = WordPairScore(word_scores)
+        # Sentence Score
+        sentence_pair_score = SentencePairScore()
+        sentence_pair_score.train(training, word_pair_score)
+        # Yalign model
+        document_aligner = SequenceAligner(sentence_pair_score, 0.49)
+        self.model = YalignModel(document_aligner)
+
+    def test_empty(self):
+        value = classifier_precision([], [], self.model)
+        self.assertEqual(value, 0.0)
+
+    def test_precision(self):
+        value = classifier_precision(self.document_a,
+                                     self.document_b,
+                                     self.model)
+        self.assertTrue(0.0 <= value <= 100.0)
+
+    def test_command_tool(self):
+        tmpdir = tempfile.mkdtemp()
+        _, tmpfile = tempfile.mkstemp()
+        self.model.save(tmpdir)
+
+        parallel_corpus = os.path.join(data_path, "canterville.txt")
+        cmdline = "yalign-evaluate-translations-alignment {corpus} {model}"
+        cmdline = cmdline.format(corpus=parallel_corpus, model=tmpdir)
+        outputfh = open(tmpfile, "w")
+        subprocess.call(cmdline, shell=True, stdout=outputfh)
+        outputfh = open(tmpfile)
+        output = outputfh.read()
+
+        A, B = parallel_corpus_to_documents(parallel_corpus)
+        model = YalignModel()
+        model.load(tmpdir)
+        value = classifier_precision(A, B, model)
+
+        self.assertIn("{}%".format(value), output)
 
 
 if __name__ == "__main__":

@@ -4,13 +4,15 @@
 Module to score the accuracy of alignments.
 """
 
-import os
 import numpy
 
+from yalign.svm import SVMClassifier
 from yalign.api import AlignDocuments
+from simpleai.machine_learning import kfold
 from yalign.sequencealigner import SequenceAligner
 from yalign.input_conversion import parallel_corpus_to_documents
-from yalign.train_data_generation import training_scrambling_from_documents
+from yalign.train_data_generation import training_scrambling_from_documents, \
+                                         training_alignments_from_documents
 
 
 def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
@@ -160,3 +162,13 @@ def word_translations_percentage(document_a, document_b, model):
 
     ratio = count / total
     return round(ratio * 100.0, 2)
+
+
+def classifier_precision(document_a, document_b, model):
+    if len(document_a) == 0 and len(document_b) == 0:
+        return 0.0
+
+    training = training_alignments_from_documents(document_a, document_b)
+    problem = model.sentence_pair_score.problem
+    score = kfold(training, problem, SVMClassifier)
+    return round(score * 100, 2)

@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+# coding: utf-8
+"""
+Gives a precision score for the sentence classfier.
+
+Usage:
+    yalign-evaluate-precision <parallel-corpus> <model>
+"""
+
+from docopt import docopt
+from yalign.yalignmodel import YalignModel
+from yalign.evaluation import classifier_precision
+from yalign.input_conversion import parallel_corpus_to_documents
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    parallel_corpus = args["<parallel-corpus>"]
+    A, B = parallel_corpus_to_documents(parallel_corpus)
+    modelpath = args["<model>"]
+    model = YalignModel()
+    model.load(modelpath)
+    p = classifier_precision(A, B, model)
+    print "Classifier precision: {}%".format(p)
