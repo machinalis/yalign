@@ -6,6 +6,7 @@ Support Vector Machine Classifier
 
 import numpy
 from sklearn import svm
+from collections import defaultdict
 from simpleai.machine_learning import Classifier
 
 
@@ -54,3 +55,33 @@ class SVMClassifier(Classifier):
         result = self.__dict__.copy()
         del result["dataset"]
         return result
+
+
+def correlation(classifier):
+    """
+    Calculates the correlation of the attributes on a classifier.
+    For more information see:
+        - http://en.wikipedia.org/wiki/Correlation_and_dependence
+    """
+
+    assert hasattr(classifier, "dataset")
+
+    result = {}
+    answers = []
+    attributes = defaultdict(list)
+
+    for data in classifier.dataset:
+        answers.append(int(classifier.problem.target(data)))
+        for i, attr in enumerate(classifier.attributes):
+            attributes[i].append(attr(data))
+
+    answers_std = numpy.std(answers)
+    for i in xrange(len(attributes)):
+        cov = numpy.cov(attributes[i], answers)[0][1]
+        std = numpy.std(attributes[i]) * answers_std
+        if std == 0:
+            corr = numpy.nan
+        else:
+            corr = cov / std
+        result[classifier.attributes[i]] = corr
+    return result
