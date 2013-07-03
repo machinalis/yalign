@@ -13,7 +13,7 @@ from yalign.input_parsing import parse_training_file
 class TestSentencePairScore(unittest.TestCase):
     def setUp(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
+        word_scores = os.path.join(base_path, "data", "test_word_scores_big.csv")
         word_pair_score = WordPairScore(word_scores)
         self.alignments_file = os.path.join(base_path, "data", "test_training.csv")
         alignments = parse_training_file(self.alignments_file)
@@ -45,6 +45,20 @@ class TestSentencePairScore(unittest.TestCase):
             score = self.score(*alignment)
             self.assertGreaterEqual(score, self.score.min_bound)
             self.assertLessEqual(score, self.score.max_bound)
+
+    def test_alignment_is_better_than_all_gaps(self):
+        a = Sentence(u"house µa µb µc µd".split(), position=0.0)
+        b = Sentence(u"casa  µ1 µ2 µ3 µ4".split(), position=0.0)
+        align1 = self.score.problem.aligner(a, b)
+
+        c = Sentence(u"µx µa µb µc µd".split(), position=0.0)
+        d = Sentence(u"µ5 µ1 µ2 µ3 µ4".split(), position=0.0)
+        align2 = self.score.problem.aligner(c, d)
+
+        s1 = sum(x[2] for x in align1)
+        s2 = sum(x[2] for x in align2)
+
+        self.assertLess(s1, s2)
 
 
 if __name__ == "__main__":

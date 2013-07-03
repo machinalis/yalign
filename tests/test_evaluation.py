@@ -110,7 +110,8 @@ class BaseTestPercentage(object):
         self.assertEqual(p, 0.0)
 
     def test_valid_value(self):
-        p = self.alignment_function(self.document_a, self.document_b, self.model)
+        p = self.alignment_function(self.document_a, self.document_b,
+                                    self.model)
         self.assertTrue(0.0 <= p <= 100.0)
 
     def test_command_tool(self):
@@ -143,7 +144,8 @@ class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
         return alignment_percentage(document_a, document_b, model)
 
     def test_alignment(self):
-        p = self.alignment_function(self.document_a, self.document_b, self.model)
+        p = self.alignment_function(self.document_a, self.document_b,
+                                    self.model)
         self.assertEqual(p, 50.0)
 
 
@@ -187,30 +189,9 @@ class TestClassifierPrecision(unittest.TestCase):
         self.assertEqual(value, 0.0)
 
     def test_precision(self):
-        value = classifier_precision(self.document_a,
-                                     self.document_b,
+        value = classifier_precision(self.document_a, self.document_b,
                                      self.model)
         self.assertTrue(0.0 <= value <= 100.0)
-
-    def test_command_tool(self):
-        tmpdir = tempfile.mkdtemp()
-        _, tmpfile = tempfile.mkstemp()
-        self.model.save(tmpdir)
-
-        parallel_corpus = os.path.join(data_path, "canterville.txt")
-        cmdline = "yalign-evaluate-translations-alignment {corpus} {model}"
-        cmdline = cmdline.format(corpus=parallel_corpus, model=tmpdir)
-        outputfh = open(tmpfile, "w")
-        subprocess.call(cmdline, shell=True, stdout=outputfh)
-        outputfh = open(tmpfile)
-        output = outputfh.read()
-
-        A, B = parallel_corpus_to_documents(parallel_corpus)
-        model = YalignModel()
-        model.load(tmpdir)
-        value = classifier_precision(A, B, model)
-
-        self.assertIn("{}%".format(value), output)
 
 
 if __name__ == "__main__":
