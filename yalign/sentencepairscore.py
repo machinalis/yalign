@@ -64,9 +64,18 @@ class SentencePairScoreProblem(ClassificationProblem):
         aligns = self.aligner(alignment.a, alignment.b)
         N = max(len(alignment.a), len(alignment.b))
         word_score = sum(x[2] for x in aligns) / float(N)
+
         # FIXME: Consider moving this to a test
         assert 0 <= word_score <= 1
         return word_score
+
+    @is_attribute
+    def amount_of_alignments(self, alignment):
+        aligns = self.aligner(alignment.a, alignment.b)
+        aligns = [x for x in aligns if x[0] is not None and x[1] is not None]
+        N = max(len(alignment.a), len(alignment.b))
+        value = len(aligns) / float(N)
+        return value
 
     @is_attribute
     def position_difference(self, alignment):
