@@ -5,32 +5,33 @@ Module to score the accuracy of alignments.
 """
 
 import numpy
+from simpleai.machine_learning import kfold
 
 from yalign.svm import SVMClassifier
-from yalign.api import AlignDocuments
-from simpleai.machine_learning import kfold
 from yalign.sequencealigner import SequenceAligner
 from yalign.input_conversion import parallel_corpus_to_documents
 from yalign.train_data_generation import training_scrambling_from_documents, \
                                          training_alignments_from_documents
 
 
-def evaluate(parallel_corpus, tu_scorer, gap_penalty, threshold, N=100):
+def evaluate(parallel_corpus, sentence_pair_score, gap_penalty, threshold, N=100):
     """
     Retruns statistics for N document alignment trials.
     The documents are generated from the parallel corpus.
-        *parallel_corpus: A file object
-        *tu_scorer: a TUScore
-        *gap_penalty, threshold: parameters for squence alignments
-        *N: Number of trials
+        * parallel_corpus: A file object
+        * sentence_pair_score: A function that scores sentences alignment
+        * gap_penalty, threshold: parameters for squence alignments
+        * N: Number of trials
     """
+    from yalign.yalignmodel import YalignModel
+
     results = []
-    align_documents = AlignDocuments(tu_scorer, gap_penalty, threshold)
+    document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
+    model = YalignModel(document_aligner, threshold)
     for idx, docs in enumerate(documents(parallel_corpus)):
         A, B, alignments = training_scrambling_from_documents(*docs)
-        predicted_alignments = align_documents(A, B)
-        xs = [(a, b) for a, b, _ in predicted_alignments]
-        scores = F_score(xs, alignments)
+        predicted_alignments = model.align_indexes(A, B)
+        scores = F_score(predicted_alignments, alignments)
         results.append(scores)
         if idx >= N:
             break
