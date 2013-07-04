@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 import random
 try:
     import cPickle as pickle
@@ -68,7 +69,7 @@ class YalignModel(object):
     def load(self, model_directory, load_data=True):
         metadata = os.path.join(model_directory, "metadata.json")
         aligner = os.path.join(model_directory, "aligner.pickle")
-        self.metadata.update(pickle.load(open(metadata)))
+        self.metadata.update(json.load(open(metadata)))
         self.threshold = self.metadata.threshold
         self.document_pair_aligner = pickle.load(open(aligner))
 
@@ -77,7 +78,7 @@ class YalignModel(object):
         aligner = os.path.join(model_directory, "aligner.pickle")
         pickle.dump(self.document_pair_aligner, open(aligner, "w"))
         self.metadata.threshold = self.threshold
-        pickle.dump(dict(self.metadata), open(metadata, "w"))
+        json.dump(dict(self.metadata), open(metadata, "w"))
 
     def optimize_gap_penalty_and_threshold(self, document_a, document_b,
                                                               real_alignments):
