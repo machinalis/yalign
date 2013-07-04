@@ -7,11 +7,11 @@ try:
 except ImportError:
     import pickle
 
+from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.input_parsing import parse_training_file
 from yalign.sentencepairscore import SentencePairScore
-from yalign.evaluation import F_score
 
 
 # FIXME: This class does not optimize gap_penalty and threshold, do.

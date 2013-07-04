@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import os
-import mock
+import random
 import tempfile
 import unittest
-import random
 
 from yalign.datatypes import Sentence
-from yalign.yalignmodel import YalignModel, random_sampling_maximizer, \
-                               best_threshold, apply_threshold
 from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parallel_corpus_to_documents
 from yalign.train_data_generation import training_scrambling_from_documents, \
-                                         training_alignments_from_documents
+    training_alignments_from_documents
+from yalign.yalignmodel import YalignModel, random_sampling_maximizer, \
+    best_threshold, apply_threshold
 
 
 class TestYalignModel(unittest.TestCase):
@@ -73,9 +72,9 @@ class TestYalignModel(unittest.TestCase):
         self.model.optimize_gap_penalty_and_threshold(self.A, self.B,
                                                       self.correct_alignments)
 
-
     def test_optimize_gap_penalty_and_threshold_is_best(self):
         self.assertTrue(False)  # This test requieres more thinking.
+
         def evaluate(penalty, threshold):
             self.model.document_pair_aligner.penalty = penalty
             self.model.threshold = threshold
