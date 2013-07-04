@@ -10,8 +10,8 @@ except ImportError:
 from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
-from yalign.input_parsing import parse_training_file
 from yalign.sentencepairscore import SentencePairScore
+from yalign.input_conversion import parse_training_file
 
 
 # FIXME: This class does not optimize gap_penalty and threshold, do.

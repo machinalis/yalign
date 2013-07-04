@@ -5,9 +5,9 @@ import os
 import unittest
 
 from yalign.datatypes import Sentence
-from yalign.sentencepairscore import SentencePairScore
 from yalign.wordpairscore import WordPairScore
-from yalign.input_parsing import parse_training_file
+from yalign.sentencepairscore import SentencePairScore
+from yalign.input_conversion import parse_training_file
 
 
 class TestSentencePairScore(unittest.TestCase):
