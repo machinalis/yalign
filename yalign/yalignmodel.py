@@ -12,19 +12,26 @@ from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
-from yalign.input_conversion import parse_training_file
+from yalign.input_conversion import parse_training_file, parse_tmx_file, \
+    parallel_corpus_to_documents
+from yalign.train_data_generation import training_alignments_from_documents
 
 
-# FIXME: This class does not optimize gap_penalty and threshold, do.
-def basic_model(word_scores_filepath, training_filepath,
+def basic_model(corpus_filepath, word_scores_filepath,
+                lang_a=None, lang_b=None, optimize=False,
                 gap_penalty=0.49, threshold=1):
-    """
-    Returns a model with the default score functions.
-    """
     # Word score
     word_pair_score = WordPairScore(word_scores_filepath)
-    # Sentence Score
-    alignments = parse_training_file(training_filepath)
+
+    if corpus_filepath.endswith(".csv"):
+        alignments = parse_training_file(corpus_filepath)
+    else:
+        if corpus_filepath.endswith(".tmx"):
+            A, B = parse_tmx_file(corpus_filepath, lang_a, lang_b)
+        else:
+            A, B = parallel_corpus_to_documents(corpus_filepath)
+        alignments = training_alignments_from_documents(A, B)
+
     sentence_pair_score = SentencePairScore()
     sentence_pair_score.train(alignments, word_pair_score)
     # Yalign model

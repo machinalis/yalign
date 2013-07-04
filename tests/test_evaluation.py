@@ -88,7 +88,7 @@ class BaseTestPercentage(object):
         self.parallel_corpus = os.path.join(data_path, "canterville.txt")
         word_scores = os.path.join(data_path, "test_word_scores_big.csv")
         training_filepath = os.path.join(data_path, "test_training.csv")
-        self.model = yalignmodel.basic_model(word_scores, training_filepath)
+        self.model = yalignmodel.basic_model(training_filepath, word_scores)
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
         self.document_a = A
         self.document_b = B
