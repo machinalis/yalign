@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
+import re
 import csv
 import codecs
+from lxml import etree
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from nltk.data import load as nltkload
 
 from yalign.tokenizers import get_tokenizer
 from yalign.datatypes import Sentence, SentencePair
+
+XMLNS = "{http://www.w3.org/XML/1998/namespace}"
+STRIP_TAGS_REGEXP = re.compile("(>)(.*)(<)", re.DOTALL)
 
 
 class Memoized(defaultdict):
@@ -139,3 +144,51 @@ def sentence_from_csv_elem(elem, label, labels):
         if (word.endswith(".") or word.endswith(",")) and word[:-1].isalpha():
             raise ValueError("Word {!r} is not tokenized".format(word))
     return Sentence(words, position=position)
+
+
+def _language_from_node(node):
+    return node.attrib.get(XMLNS + "lang")
+
+
+def _node_to_sentence(node):
+    text = etree.tostring(node)
+    match = re.search(STRIP_TAGS_REGEXP, text)
+    text = match.group(2) if match else u""
+    text = text.replace("\n", " ")
+    return text.decode("utf-8")  # Fixme: pick up encoding from file
+
+
+def _iterparse(input_file, tag=None, events=("end",),
+               encoding=None, remove_blank_text=False):
+    parser = etree.iterparse(input_file, events=events,
+                             tag=tag, encoding=encoding,
+                             remove_blank_text=remove_blank_text)
+    for _, node in parser:
+        yield node
+        node.clear()
+        while node.getprevious() is not None:
+            del node.getparent()[0]
+
+
+def parse_tmx_file(filepath, lang_a=None, lang_b=None):
+    inputfile = open(filepath)
+
+    tu = _iterparse(inputfile, "tu").next()
+    languages = tuple(_language_from_node(tuv) for tuv in tu.findall("tuv"))
+    source, target = languages
+    lang_a = source if lang_a is None else lang_a
+    lang_b = target if lang_b is None else lang_b
+    inputfile.seek(0)
+    document_a = []
+    document_b = []
+    for tu in _iterparse(inputfile, "tu"):
+        sentences = {}
+        for tuv in tu.findall("tuv"):
+            seg = tuv.find("seg")
+            lang = _language_from_node(tuv)
+            if lang in languages:
+                sentences[lang] = tokenize(_node_to_sentence(seg), lang)
+        document_a.append(sentences[lang_a])
+        document_b.append(sentences[lang_b])
+
+    return document_a, document_b

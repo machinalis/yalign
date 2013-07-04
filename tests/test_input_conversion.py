@@ -9,7 +9,7 @@ from StringIO import StringIO
 
 from yalign.datatypes import Sentence
 from yalign.input_conversion import tokenize, text_to_document, \
-    html_to_document, parallel_corpus_to_documents
+    html_to_document, parallel_corpus_to_documents, parse_tmx_file
 
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -209,6 +209,31 @@ class TestParallelCorpusDocument(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             A, B = parallel_corpus_to_documents(tmpfile)
+
+
+class TestTMXDocument(unittest.TestCase):
+    def setUp(self):
+        document_path = os.path.join(data_path, "corpus-en-es.tmx")
+        self.document_a, self.document_b = parse_tmx_file(document_path,
+                                                          "en", "es")
+
+    def test_correct_length(self):
+        self.assertEqual(len(self.document_a), 20)
+        self.assertEqual(len(self.document_b), 20)
+
+    def test_correct_type(self):
+        for a, b in zip(self.document_a, self.document_b):
+            self.assertTrue(isinstance(a, Sentence))
+            self.assertTrue(isinstance(b, Sentence))
+
+    def test_swap_languages(self):
+        document_path = os.path.join(data_path, "corpus-en-es.tmx")
+        swap_a, swap_b = parse_tmx_file(document_path, "es", "en")
+
+        for x, y in zip(swap_a, self.document_b):
+            self.assertEqual(x, y)
+        for x, y in zip(swap_b, self.document_a):
+            self.assertEqual(x, y)
 
 
 if __name__ == "__main__":
