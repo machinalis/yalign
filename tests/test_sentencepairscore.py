@@ -60,12 +60,6 @@ class TestSentencePairScore(unittest.TestCase):
 
         self.assertLess(s1, s2)
 
-        # FIXME: check this case, the alignment appears to be wrong
-        # e = Sentence(u"house µa µb µc µd µe".split(), position=0.0)
-        # f = Sentence(u"casa  µ1 µ2 µ3 µ4".split(), position=0.0)
-        # align3 = self.score.problem.aligner(e, f)
-        # print align3
-
 
 if __name__ == "__main__":
     unittest.main()

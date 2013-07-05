@@ -36,6 +36,7 @@ class BaseTestAlignSequences(object):
         gap = gap - 1
         self.assertRaises(ValueError, self.align, self.xs, self.ys,
                                                                self.weight, gap)
+
     def test_no_negative_weights(self):
         def proxy(a, b):
             w = self.weight(a, b)
@@ -44,8 +45,10 @@ class BaseTestAlignSequences(object):
             w = w - 1
         self.assertRaises(ValueError, self.align, self.xs, self.ys,
                                                         proxy, self.gap_penalty)
+
     def test_weight_not_called_twice(self):
         seen = set()
+
         def proxy(i, j):
             self.assertNotIn((i, j), seen)
             seen.add((i, j))
@@ -56,6 +59,7 @@ class BaseTestAlignSequences(object):
 
     def test_weight_not_for_all(self):
         seen = set()
+
         def proxy(i, j):
             seen.add((i, j))
             a, b = self.xs[i], self.ys[j]
@@ -92,6 +96,29 @@ class TestAlignSequences_EditDistance2(BaseTestAlignSequences_ED, unittest.TestC
     xs = "Saturday"
     ys = "Sunday"
     expected_cost = 3
+
+
+class TestAlignSequences_WeirdAlignment(BaseTestAlignSequences, unittest.TestCase):
+    xs = u"house µa µb µc µd µe".split()
+    ys = u"casa  µ1 µ2 µ3 µ4".split()
+    gap_penalty = 0.4999
+    C = 1 - 0.19813635000000002
+
+    def weight(self, a, b):
+        if a == u"house" and b == u"casa":
+            return self.C
+        else:
+            return 1.0
+
+    def test_alignments_ok(self):
+        align = self.align(self.xs, self.ys)
+        x0 = list(align[0][0:2])
+        self.assertEqual([0, 0], x0)
+        for a, b, c in align[1:]:
+            self.assertTrue(a is None or b is None)  # Rest is unaligned
+
+    def test_weight_not_for_all(self):
+        pass  # 0.4999 ensures that corners are explored
 
 
 class TestAlignSequences_Sintetic1(BaseTestAlignSequences, unittest.TestCase):
