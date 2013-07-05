@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Trains a model.
+
+Usage:
+    yalign-train [options] <corpus> <wordscores> <output_folder>
+
+Options:
+  -s --lang-a=<language>      The language of the document A [default: en]
+  -t --lang-b=<language>      The language of the document B [default: es]
+  -o --optimize               Optimizes the gap penalty and threshold
+"""
+
+import os
+from docopt import docopt
+from yalign import basic_model
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    lang_a = args["--lang-a"]
+    lang_b = args["--lang-b"]
+    corpus = args["<corpus>"]
+    optimize = args["--optimize"]
+    wordscores = args["<wordscores>"]
+
+    output_folder = args["<output_folder>"]
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+
+    model = basic_model(corpus, wordscores, lang_a, lang_b, optimize=optimize)
+    model.save(output_folder)
