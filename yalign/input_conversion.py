@@ -140,8 +140,7 @@ def sentence_from_csv_elem(elem, label, labels):
     words = elem[labels[label]].decode("utf-8").split()
     position = float(elem[labels["pos " + label]])
     for word in words:
-        # FIXME: add harder checks
-        if (word.endswith(".") or word.endswith(",")) and word[:-1].isalpha():
+        if not _is_tokenized(word):
             raise ValueError("Word {!r} is not tokenized".format(word))
     return Sentence(words, position=position)
 
