@@ -58,6 +58,7 @@ class SentencePairScoreProblem(ClassificationProblem):
         # If gap > 0.5 then the returned value could be > 1.
         self.word_pair_score = word_pair_score
         self.aligner = SequenceAligner(word_pair_score, 0.4999)
+        self.aligner = CacheOfSizeOne(self.aligner)
 
     @is_attribute
     def word_score(self, alignment):
@@ -115,3 +116,17 @@ def logistic_function(x):
     See: http://en.wikipedia.org/wiki/Logistic_function
     """
     return 1 / (1 + math.e ** (-x))
+
+
+class CacheOfSizeOne(object):
+    def __init__(self, f):
+        self.f = f
+        self.args = None
+        self.kwargs = None
+
+    def __call__(self, *args, **kwargs):
+        if args != self.args or kwargs != self.kwargs:
+            self.result = self.f(*args, **kwargs)
+            self.args = args
+            self.kwargs = kwargs
+        return self.result

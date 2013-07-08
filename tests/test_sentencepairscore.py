@@ -6,8 +6,9 @@ import unittest
 
 from yalign.datatypes import Sentence
 from yalign.wordpairscore import WordPairScore
-from yalign.sentencepairscore import SentencePairScore
-from yalign.input_conversion import parse_training_file
+from yalign.sentencepairscore import SentencePairScore, CacheOfSizeOne
+from yalign.input_conversion import parallel_corpus_to_documents
+from yalign.train_data_generation import training_alignments_from_documents
 
 
 class TestSentencePairScore(unittest.TestCase):
@@ -15,10 +16,11 @@ class TestSentencePairScore(unittest.TestCase):
         base_path = os.path.dirname(os.path.abspath(__file__))
         word_scores = os.path.join(base_path, "data", "test_word_scores_big.csv")
         word_pair_score = WordPairScore(word_scores)
-        self.alignments_file = os.path.join(base_path, "data", "test_training.csv")
-        alignments = parse_training_file(self.alignments_file)
+        fin = os.path.join(base_path, "data", "parallel-en-es.txt")
+        A, B = parallel_corpus_to_documents(fin)
+        self.alignments = training_alignments_from_documents(A, B)
         self.score = SentencePairScore()
-        self.score.train(alignments, word_pair_score)
+        self.score.train(self.alignments, word_pair_score)
 
     def test_does_not_raises_errors(self):
         # Since I can't test if its a good or a bad alignment at this level
@@ -41,7 +43,7 @@ class TestSentencePairScore(unittest.TestCase):
         self.assertGreater(score1, score2)
 
     def test_score_in_bounds(self):
-        for alignment in parse_training_file(self.alignments_file):
+        for alignment in self.alignments:
             score = self.score(*alignment)
             self.assertGreaterEqual(score, self.score.min_bound)
             self.assertLessEqual(score, self.score.max_bound)
@@ -59,6 +61,22 @@ class TestSentencePairScore(unittest.TestCase):
         s2 = sum(x[2] for x in align2)
 
         self.assertLess(s1, s2)
+
+
+class TestCacheOfSizeOne(unittest.TestCase):
+    def test_calls_N_times(self):
+        count = {0: 0}
+
+        def f(x):
+            count[0] += 1
+            return x
+        g = CacheOfSizeOne(f)
+
+        inputs = [0] + range(3) + range(2, 6)
+        for x in inputs:  # 1 0 1 1 0 1 1 1
+            self.assertEqual(x, g(x))
+
+        self.assertEqual(count[0], 6)
 
 
 if __name__ == "__main__":
