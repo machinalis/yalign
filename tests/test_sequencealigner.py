@@ -99,6 +99,10 @@ class TestAlignSequences_EditDistance2(BaseTestAlignSequences_ED, unittest.TestC
 
 
 class TestAlignSequences_WeirdAlignment(BaseTestAlignSequences, unittest.TestCase):
+    """
+    This case was "weird" because it failed on very particular conditions.
+    It turned out that it was a bug in simpleai's astar.
+    """
     xs = u"house µa µb µc µd µe".split()
     ys = u"casa  µ1 µ2 µ3 µ4".split()
     gap_penalty = 0.4999
