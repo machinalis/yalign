@@ -119,6 +119,8 @@ def logistic_function(x):
 
 
 class CacheOfSizeOne(object):
+    f = None
+
     def __init__(self, f):
         self.f = f
         self.args = None
@@ -130,3 +132,6 @@ class CacheOfSizeOne(object):
             self.args = args
             self.kwargs = kwargs
         return self.result
+
+    def __getattr__(self, name):
+        return getattr(self.f, name)
