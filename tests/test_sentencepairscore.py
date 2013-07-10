@@ -18,19 +18,19 @@ class TestSentencePairScore(unittest.TestCase):
         word_pair_score = WordPairScore(word_scores)
         fin = os.path.join(base_path, "data", "parallel-en-es.txt")
         A, B = parallel_corpus_to_documents(fin)
-        self.alignments = training_alignments_from_documents(A, B)
+        self.alignments = list(training_alignments_from_documents(A, B))
         self.score = SentencePairScore()
         self.score.train(self.alignments, word_pair_score)
 
-    def test_does_not_raises_errors(self):
-        # Since I can't test if its a good or a bad alignment at this level
-        # I'll just run the code to check that no exceptions are raised
+    def test_generates_numbers(self):
         a = Sentence(u"house you".split(), position=0.5)
         b = Sentence(u"casa usted".split(), position=0.5)
-        self.score(a, b)
+        x = self.score(a, b)
+        self.assertIsInstance(x, (int, float))
         a = Sentence(u"Valar Morghulis".split(), position=0.0)
         b = Sentence(u"Dracarys".split(), position=1.0)
-        self.score(a, b)
+        x = self.score(a, b)
+        self.assertIsInstance(x, (int, float))
 
     def test_score_order(self):
         a = Sentence(u"Call History .".split(), position=0.0)
@@ -40,7 +40,7 @@ class TestSentencePairScore(unittest.TestCase):
         b = Sentence(u"Vuelva a ingresar un nuevo código de bloqueo .".split(),
                      position=0.26)
         score2 = self.score(a, b)
-        self.assertGreater(score1, score2)
+        self.assertLess(score1, score2)
 
     def test_score_in_bounds(self):
         for alignment in self.alignments:

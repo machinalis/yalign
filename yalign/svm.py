@@ -19,28 +19,21 @@ class SVMClassifier(Classifier):
             vectors.append(vector)
             answer = self.problem.target(data)
             answers.append(answer)
+        if not vectors:
+            raise ValueError("Cannot train on empty set")
         self.svm = svm.SVC()
         self.svm.fit(vectors, answers)
-        # FIXME: Move the sign trick into sentencepairscore
-        self.sign = 1
-        vector = self.svm.support_vectors_[0]
-        class_ = self.svm.predict(vector)
-        score = self.svm.decision_function(vector)
-        assert score != 0  # Because it's a support vector
-        if (class_ is True and score < 0) or \
-           (class_ is False and score > 0):
-            self.sign = -1
 
     def classify(self, data):
         vector = self.vectorize(data)
-        return self.svm.predict(vector)
+        return self.svm.predict(vector)[0]
 
     def score(self, data):
         """
         True class is positive, False class is negative.
         """
         vector = self.vectorize(data)
-        return self.svm.decision_function(vector) * self.sign
+        return float(self.svm.decision_function(vector))
 
     def vectorize(self, data):
         vector = [attr(data) for attr in self.attributes]

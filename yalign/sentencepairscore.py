@@ -12,6 +12,7 @@ class SentencePairScore(ScoreFunction):
     def __init__(self):
         super(SentencePairScore, self).__init__(0, 1)
         self.classifier = None
+        self.sign = 1
 
     # FIXME: Consider giving the word_aligner instead of word_score_function
     def train(self, pairs, word_score_function):
@@ -23,6 +24,18 @@ class SentencePairScore(ScoreFunction):
         """
         self.problem = SentencePairScoreProblem(word_score_function)
         self.classifier = SVMClassifier(pairs, self.problem)
+        class_ = None
+        for a, b in pairs:
+            sent = a = SentencePair(a, b)
+            score = self.classifier.score(sent)
+            if score != 0:
+                class_ = bool(self.classifier.classify(sent))
+                if (score > 0 and class_ is True) or \
+                   (score < 0 and class_ is False):
+                    self.sign = -1
+                break
+        if class_ is None:
+            raise ValueError("Cannot infer sign with this data")
 
     def load(self, filepath):
         self.classifier = SVMClassifier.load(filepath)
@@ -37,7 +50,7 @@ class SentencePairScore(ScoreFunction):
         if self.classifier is None:
             raise LookupError("Score not trained or loaded yet")
         a = SentencePair(a, b)
-        score = self.classifier.score(a)
+        score = self.classifier.score(a) * self.sign
         result = logistic_function(score * 3)
         # FIXME: Consider moving this to a test
         assert self.min_bound <= result <= self.max_bound

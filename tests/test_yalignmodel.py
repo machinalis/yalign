@@ -21,14 +21,14 @@ class TestYalignModel(unittest.TestCase):
     def setUp(self):
         random.seed(hash("Y U NO?"))
         base_path = os.path.dirname(os.path.abspath(__file__))
-        word_scores = os.path.join(base_path, "data", "test_word_scores.csv")
+        word_scores = os.path.join(base_path, "data", "test_word_scores_big.csv")
         parallel_corpus = os.path.join(base_path, "data", "parallel-en-es.txt")
         A, B = parallel_corpus_to_documents(parallel_corpus)
-        self.alignments = training_alignments_from_documents(A[15:], B[15:])
         A = A[:15]
         B = B[:15]
+        self.alignments = list(training_alignments_from_documents(A, B))
         self.A, self.B, self.correct_alignments = \
-                                       training_scrambling_from_documents(A, B)
+                                 list(training_scrambling_from_documents(A, B))
         # Word score
         word_pair_score = WordPairScore(word_scores)
         # Sentence Score
@@ -39,7 +39,7 @@ class TestYalignModel(unittest.TestCase):
         self.max_ = sentence_pair_score.max_bound
         gap_penalty = (self.min_ + self.max_) / 2.0
         document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
-        self.model = YalignModel(document_aligner)
+        self.model = YalignModel(document_aligner, 1)
 
     def test_save_file_created(self):
         tmp_folder = tempfile.mkdtemp()
@@ -52,7 +52,7 @@ class TestYalignModel(unittest.TestCase):
     def test_save_load_and_align(self):
         doc1 = [Sentence([u"House"], position=0),
                 Sentence([u"asoidfhuioasgh"], position=1)]
-        doc2 = [Sentence(u"Casa", position=0)]
+        doc2 = [Sentence([u"Casa"], position=0)]
         result_before_save = self.model.align(doc1, doc2)
 
         # Save
@@ -63,10 +63,15 @@ class TestYalignModel(unittest.TestCase):
         new_model = YalignModel()
         new_model.load(tmp_folder)
         result_after_load = new_model.align(doc1, doc2)
-
         self.assertEqual(result_before_save, result_after_load)
-        self.assertEqual(len(result_after_load), 2)
-        self.assertIn((0, 0), result_after_load)
+
+    def test_reasonable_alignment(self):
+        doc1 = [Sentence([u"House"], position=0),
+                Sentence([u"asoidfhuioasgh"], position=1)]
+        doc2 = [Sentence([u"Casa"], position=0)]
+        result = self.model.align(doc1, doc2)
+        result = [(list(x), list(y)) for x, y in result]
+        self.assertIn((list(doc1[0]), list(doc2[0])), result)
 
     def test_optimize_gap_penalty_and_threshold_finishes(self):
         self.model.optimize_gap_penalty_and_threshold(self.A, self.B,
