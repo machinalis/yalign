@@ -22,6 +22,7 @@ class SentencePairScore(ScoreFunction):
         `word_score_function` is an instance of ScoreFunction, perhaps even an
         instance of `WordPairScore`.
         """
+        pairs = list(pairs)
         self.problem = SentencePairScoreProblem(word_score_function)
         self.classifier = SVMClassifier(pairs, self.problem)
         class_ = None
