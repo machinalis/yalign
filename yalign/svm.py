@@ -26,7 +26,7 @@ class SVMClassifier(Classifier):
 
     def classify(self, data):
         vector = self.vectorize(data)
-        return self.svm.predict(vector)[0]
+        return self.svm.predict(vector)[0], 1
 
     def score(self, data):
         """
