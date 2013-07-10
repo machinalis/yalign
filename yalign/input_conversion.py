@@ -41,9 +41,15 @@ def tokenize(text, language="en"):
 
 
 def text_to_document(text, language="en"):
+    document = []
     sentence_splitter = _sentence_splitters[language]
-    return [tokenize(sentence, language)
-            for sentence in sentence_splitter.tokenize(text)]
+    sentences = sentence_splitter.tokenize(text)
+    total_sentences = float(len(sentences))
+    for i, sentence_text in enumerate(sentences):
+        sentence = tokenize(sentence_text, language)
+        sentence.position = i / total_sentences
+        document.append(sentence)
+    return document
 
 
 def html_to_document(html, language="en"):

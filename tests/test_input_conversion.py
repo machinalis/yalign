@@ -124,6 +124,12 @@ class BaseTestTextToDocument(object):
             for word in sentence:
                 self.assertIsInstance(word, unicode)
 
+    def test_has_position(self):
+        document = text_to_document(self.text, self.language)
+        self.assertGreater(len(document), 1)
+        for sentence in document:
+            self.assertTrue(hasattr(sentence, "position"))
+
 
 class TestTextToDocumentEn(BaseTestTextToDocument, unittest.TestCase):
     language = "en"
