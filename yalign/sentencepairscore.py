@@ -30,7 +30,7 @@ class SentencePairScore(ScoreFunction):
             sent = a = SentencePair(a, b)
             score = self.classifier.score(sent)
             if score != 0:
-                class_ = bool(self.classifier.classify(sent))
+                class_ = bool(self.classifier.classify(sent)[0])
                 if (score > 0 and class_ is True) or \
                    (score < 0 and class_ is False):
                     self.sign = -1
