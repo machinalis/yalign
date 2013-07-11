@@ -116,6 +116,31 @@ class SentencePairScoreProblem(ClassificationProblem):
         return ratio(a, b)
 
     @is_attribute
+    def commas(self, alignment):
+        a = len([x for x in alignment.a if x == ","])
+        b = len([x for x in alignment.b if x == ","])
+        return ratio(a, b)
+
+    @is_attribute
+    def question_marks(self, alignment):
+        a = len([x for x in alignment.a if x == "?"])
+        b = len([x for x in alignment.b if x == "?"])
+        return ratio(a, b)
+
+    @is_attribute
+    def punctuation(self, alignment):
+        punc = ",.-?+<>_\\/"
+        a = len([x for x in alignment.a if x in punc])
+        b = len([x for x in alignment.b if x in punc])
+        return ratio(a, b)
+
+    @is_attribute
+    def digits(self, alignment):
+        a = len([x for x in alignment.a if x.isdigit()])
+        b = len([x for x in alignment.b if x.isdigit()])
+        return ratio(a, b)
+
+    @is_attribute
     def word_match(self, alignment):
         a, b = list(alignment.a), list(alignment.b)
         word_pairs = self._word_pairs(alignment)
@@ -144,7 +169,7 @@ class SentencePairScoreProblem(ClassificationProblem):
 
 def ratio(a, b):
     if max(a, b) == 0:
-        return 1.0
+        return 0.0
     return min(a, b) / float(max(a, b))
 
 
