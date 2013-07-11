@@ -144,8 +144,9 @@ class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
         return alignment_percentage(document_a, document_b, model)
 
     def test_alignment(self):
-        p = self.alignment_function(self.document_a, self.document_b,
-                                    self.model)
+        document_a = self.document_a
+        document_b = self.document_b[::-1]
+        p = self.alignment_function(document_a, document_b, self.model)
         self.assertEqual(p, 50.0)
 
 
