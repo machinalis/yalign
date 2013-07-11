@@ -74,8 +74,8 @@ class SentencePairScoreProblem(ClassificationProblem):
         self.aligner = SequenceAligner(word_pair_score, 0.4999)
         self.aligner = CacheOfSizeOne(self.aligner)
 
-    @is_attribute
     def word_score(self, alignment):
+        raise Exception
         aligns = self.aligner(alignment.a, alignment.b)
         N = max(len(alignment.a), len(alignment.b))
         word_score = sum(x[2] for x in aligns) / float(N)
@@ -84,8 +84,8 @@ class SentencePairScoreProblem(ClassificationProblem):
         assert 0 <= word_score <= 1
         return word_score
 
-    @is_attribute
     def amount_of_alignments(self, alignment):
+        raise Exception
         aligns = self.aligner(alignment.a, alignment.b)
         aligns = [x for x in aligns if x[0] is not None and x[1] is not None]
         N = max(len(alignment.a), len(alignment.b))
@@ -114,6 +114,29 @@ class SentencePairScoreProblem(ClassificationProblem):
         a = len([x for x in alignment.a if x.istitle()])
         b = len([x for x in alignment.b if x.istitle()])
         return ratio(a, b)
+
+    @is_attribute
+    def word_match(self, alignment):
+        a, b = list(alignment.a), list(alignment.b)
+        word_pairs = self._word_pairs(alignment)
+        score = 0
+        for cost, word_a, word_b in word_pairs:
+            if word_a in a and word_b in b:
+                score += cost
+                a.remove(word_a)
+                b.remove(word_b)
+        score += len(a) + len(b)
+        return float(score) / (len(alignment.a) + len(alignment.b))
+
+    def _word_pairs(self, alignment):
+        a, b = alignment
+        pairs = []
+        for word_a in a:
+            for word_b in b:
+                item = self.word_pair_score(word_a, word_b), word_a, word_b
+                pairs.append(item)
+        pairs.sort()
+        return pairs
 
     def target(self, alignment):
         return alignment.aligned

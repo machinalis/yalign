@@ -9,7 +9,7 @@ Usage:
 """
 
 from docopt import docopt
-from yalign.input_conversion import parallel_corpus_to_documents
+from yalign.input_conversion import generate_documents
 from yalign.train_data_generation import training_alignments_from_documents
 import csv
 
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     parallel_corpus = args["<parallel-corpus>"]
     outfile = csv.writer(open(args["<outfile>"], "w"), quoting=csv.QUOTE_NONNUMERIC)
     outfile.writerow(["aligned", "pos a", "a", "pos b", "b"])
-    A, B = parallel_corpus_to_documents(parallel_corpus)
-    for pair in training_alignments_from_documents(A, B):
-        a, b = pair
-        sample = [int(pair.aligned), a.position, _text(a), b.position, _text(b)]
-        outfile.writerow(sample)
+    for A, B in generate_documents(parallel_corpus,m=1):
+        for pair in training_alignments_from_documents(A, B):
+            a, b = pair
+            sample = [int(pair.aligned), a.position, _text(a), b.position, _text(b)]
+            outfile.writerow(sample)

@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+Extract text from an html page.
+
+Usage:
+    yalign-tokenize-parallel-corpus [options] <input> <output>
+
+Options:
+  -s --lang-a=<language>      The language of the document A [default: en]
+  -t --lang-b=<language>      The language of the document B [default: es]
+"""
+
+from docopt import docopt
+import codecs
+from yalign.input_conversion import tokenize
+
+
+def sentences(filepath):
+    corpus = iter(codecs.open(filepath, encoding="utf-8"))
+    while True:
+        try:
+            yield next(corpus), next(corpus)
+        except StopIteration:
+            break
+
+
+def tokenized_text(sentence, language):
+    text = tokenize(sentence, language=language)
+    text = u' '.join(text)
+    return text.encode('utf-8')
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    source = args['<input>']
+    output = open(args['<output>'], 'w')
+    lang_a = args['--lang-a']
+    lang_b = args['--lang-b']
+    for a, b in sentences(source):
+        output.write(tokenized_text(a)+'\n')
+        output.write(tokenized_text(b)+'\n')

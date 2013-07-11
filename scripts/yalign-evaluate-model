@@ -4,30 +4,36 @@
 Evaluate a model using random data generated from a parallel corpus.
 
 Usage:
-    yalign-evaluate-model [options] <parallel-corpus> <scorer> <metadata>
+    yalign-evaluate-model [options] <parallel-corpus> <model_folder> <log>
 
 Options:
   -n --number-of-tries=<number-of-tries>  Max number of evaluations [default: 100]
+  -m --message=<message>                  Message
 """
+
 import json
+import datetime
 from docopt import docopt
-from yalign.sentencepairscore import SentencePairScore
+from yalign.yalignmodel import YalignModel
 from yalign.evaluation import evaluate
 
-def print_stats(stats):
-    print "    \tF\tPrec.\tRec."
-    print "max \t%.4f\t%.4f\t%.4f" % tuple(stats['max'])
-    print "mean\t%.4f\t%.4f\t%.4f" % tuple(stats['mean'])
-    print "std \t%.4f\t%.4f\t%.4f" % tuple(stats['std'])
-    
+def print_stats(stats, writer):
+    writer.write("    \tF\tPrec.\tRec.\n")
+    writer.write("max \t%.4f\t%.4f\t%.4f\n" % tuple(stats['max']))
+    writer.write("mean\t%.4f\t%.4f\t%.4f\n" % tuple(stats['mean']))
+    writer.write("std \t%.4f\t%.4f\t%.4f\n" % tuple(stats['std']))
+
 if __name__ == "__main__":
     args = docopt(__doc__)
     parallel_corpus = args["<parallel-corpus>"]
-    metadata = json.load(open(args["<metadata>"]))
-    gap_penalty = metadata['gap_penalty']
-    threshold = metadata['threshold']
-    scorer = SentencePairScore()
-    scorer.load(args["<scorer>"])
+    model_folder = args["<model_folder>"]
+    log = open(args["<log>"], "a")
+    model = YalignModel()
+    model.load(model_folder)
     N = int(args['--number-of-tries'])
-    stats = evaluate(parallel_corpus, scorer, gap_penalty, threshold, N)
-    print_stats(stats)
+    stats = evaluate(parallel_corpus, model, N)
+    message =  str(datetime.datetime.now())+': '
+    message += args['--message'] or ''
+    log.write(message+'\n')
+    print_stats(stats, log)
+    log.write('\n')

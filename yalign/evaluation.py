@@ -9,12 +9,17 @@ from simpleai.machine_learning import kfold
 
 from yalign.svm import SVMClassifier
 from yalign.sequencealigner import SequenceAligner
-from yalign.input_conversion import parallel_corpus_to_documents
+from yalign.input_conversion import generate_documents
 from yalign.train_data_generation import training_scrambling_from_documents, \
                                          training_alignments_from_documents
 
 
-def evaluate(parallel_corpus, sentence_pair_score, gap_penalty, threshold, N=100):
+def optimize(parallel_corpus, model, N=100):
+
+    for idx, docs in enumerate(generate_documents(parallel_corpus)):
+        A, B, alignments = training_scrambling_from_documents(*docs)
+
+def evaluate(parallel_corpus, model, N=100):
     """
     Retruns statistics for N document alignment trials.
     The documents are generated from the parallel corpus.
@@ -26,17 +31,14 @@ def evaluate(parallel_corpus, sentence_pair_score, gap_penalty, threshold, N=100
     from yalign.yalignmodel import YalignModel
 
     results = []
-    document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
-    model = YalignModel(document_aligner, threshold)
-    for idx, docs in enumerate(documents(parallel_corpus)):
+    for idx, docs in enumerate(generate_documents(parallel_corpus)):
         A, B, alignments = training_scrambling_from_documents(*docs)
         predicted_alignments = model.align_indexes(A, B)
         scores = F_score(predicted_alignments, alignments)
         results.append(scores)
-        if idx >= N:
+        if idx >= N -1:
             break
     return _stats(results)
-
 
 def _stats(xs):
     return dict(max=numpy.amax(xs, 0),

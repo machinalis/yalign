@@ -46,24 +46,26 @@ class SVMClassifier(Classifier):
 
     def __getstate__(self):
         result = self.__dict__.copy()
-        del result["dataset"]
+        if result.has_key("dataset"):
+            del result["dataset"]
         return result
 
 
-def correlation(classifier):
+def correlation(classifier, dataset=None):
     """
     Calculates the correlation of the attributes on a classifier.
     For more information see:
         - http://en.wikipedia.org/wiki/Correlation_and_dependence
     """
-
-    assert hasattr(classifier, "dataset")
+    if dataset == None:
+        assert hasattr(classifier, "dataset")
+        dataset = classifier.dataset
 
     result = {}
     answers = []
     attributes = defaultdict(list)
 
-    for data in classifier.dataset:
+    for data in dataset:
         answers.append(int(classifier.problem.target(data)))
         for i, attr in enumerate(classifier.attributes):
             attributes[i].append(attr(data))

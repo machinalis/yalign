@@ -3,6 +3,8 @@
 import re
 import csv
 import codecs
+import random
+from itertools import islice
 from lxml import etree
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -58,6 +60,25 @@ def html_to_document(html, language="en"):
     return text_to_document(text, language)
 
 
+MIN_LINES = 10
+MAX_LINES = 10
+
+
+def generate_documents(filepath, m=MIN_LINES, n=MAX_LINES):
+    """
+    Document generator. Documents are created from the parallel corpus and
+    will be between m and n lines long.
+    """
+    parallel_corpus = iter(codecs.open(filepath, encoding="utf-8"))
+    m = m if m > 0 else 1
+    N = random.randint(m, n)
+    A, B = _next_documents(parallel_corpus, N)
+    while len(A) >= m and len(B) >= m:
+        yield A, B
+        N = random.randint(m, n)
+        A, B = _next_documents(parallel_corpus, N)
+
+
 def parallel_corpus_to_documents(filepath):
     """
     Transforms a parallel corpus file format into two
@@ -77,50 +98,32 @@ def parallel_corpus_to_documents(filepath):
         Y esta , mi amigo , es otra .
 
     """
-
     handler = iter(codecs.open(filepath, encoding="utf-8"))
-    document_a = []
-    document_b = []
-    total_lines = 0
-
-    while True:
-        try:
-            line_a = next(handler)
-            line_b = next(handler)
-        except StopIteration:
-            break
-
-        document_a.append(Sentence(line_a.split()))
-        document_b.append(Sentence(line_b.split()))
-        total_lines += 1
-
-    i = 0.0
-    for a, b in zip(document_a, document_b):
-        position = i / total_lines
-        a.position = position
-        b.position = position
-        i += 1.0
-
-        for word_a, word_b in zip(a, b):
-            message = u"Word {!r} is not tokenized"
-            if not _is_tokenized(word_a):
-                raise ValueError(message.format(word_a))
-            if not _is_tokenized(word_b):
-                raise ValueError(message.format(word_b))
-
-    return document_a, document_b
+    return _next_documents(handler)
 
 
-def _is_tokenized(word):
-    """
-    Runs some checks to see if the word is tokenized.
-    Note: if this functions returns True doesn't mean is really tokenized, but
-    if returns False you know it's not tokenized propperly.
-    """
+def _next_documents(parallel_corpus, N=None):
+    lines_a, lines_b = _split_parallel_corpus(parallel_corpus, N)
+    return _document(lines_a), _document(lines_b)
 
-    # FIXME: add harder checks
-    return not ((word.endswith(".") or word.endswith(",")) and
-                word[:-1].isalpha())
+
+
+def _document(lines):
+    doc = list([Sentence(line.split()) for line in lines])
+    for idx, sentence in enumerate(doc):
+        sentence.position = float(idx) / len(doc)
+        sentence.check_is_tokenized()
+    return doc
+
+
+def _split_parallel_corpus(parallel_corpus, N=None):
+    if N is None:
+        parallel_corpus = parallel_corpus.readlines()
+        n = len(parallel_corpus)
+    else:
+        n = N * 2
+    lines = [x for x in islice(parallel_corpus, n)]
+    return list(lines[0:n:2]), list(lines[1:n:2])
 
 
 def parse_training_file(training_file):
@@ -145,10 +148,9 @@ def parse_training_file(training_file):
 def sentence_from_csv_elem(elem, label, labels):
     words = elem[labels[label]].decode("utf-8").split()
     position = float(elem[labels["pos " + label]])
-    for word in words:
-        if not _is_tokenized(word):
-            raise ValueError("Word {!r} is not tokenized".format(word))
-    return Sentence(words, position=position)
+    sentence = Sentence(words, position=position)
+    sentence.check_is_tokenized()
+    return sentence
 
 
 def _language_from_node(node):
@@ -197,3 +199,19 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
         document_b.append(sentences[lang_b])
 
     return document_a, document_b
+
+def host_and_page(url):
+    url = url.split('//')[1]
+    parts = url.split('/')
+    host = parts[0]
+    page = "/".join(parts[1:])
+    return host, '/' + page
+
+
+def read_from_url(url):
+    import httplib
+    host, page = host_and_page(url)
+    conn = httplib.HTTPConnection(host)
+    conn.request("GET", page)
+    response = conn.getresponse()
+    return response.read()

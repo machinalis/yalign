@@ -5,29 +5,12 @@
 Extract text from an html page.
 
 Usage:
-    html_to_text <url_or_file> <output>
+    yalign-html_to_corpus <url_or_file> <output>
 """
 
-import httplib
 from docopt import docopt
-
+from yalign.input_conversion import read_from_url
 from yalign.train import html_to_corpus
-
-
-def host_and_page(url):
-    url = url.split('//')[1]
-    parts = url.split('/')
-    host = parts[0]
-    page = "/".join(parts[1:])
-    return host, '/' + page
-
-
-def read_from_url(url):
-    host, page = host_and_page(url)
-    conn = httplib.HTTPConnection(host)
-    conn.request("GET", page)
-    response = conn.getresponse()
-    return response.read()
 
 
 def read_html(source):

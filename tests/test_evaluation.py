@@ -59,28 +59,6 @@ class TestFScore(unittest.TestCase):
         self.assertTrue(a < b)
 
 
-class TestEvaluate(unittest.TestCase):
-
-    def setUp(self):
-        self.parallel_corpus = os.path.join(data_path, "canterville.txt")
-        metadata_filename = os.path.join(data_path, "metadata.json")
-        metadata = json.load(open(metadata_filename))
-        self.gap_penalty = metadata['gap_penalty']
-        self.threshold = metadata['threshold']
-        self.classifier, _ = default_sentence_pair_score()
-
-    def test_evaluate(self):
-        random.seed(123)
-        stats = evaluate(self.parallel_corpus,
-                         self.classifier,
-                         self.gap_penalty,
-                         self.threshold, 20)
-        for x, y in izip(stats['max'], stats['mean']):
-            self.assertTrue(x > y > 0)
-        for x in stats['std']:
-            self.assertTrue(x > 0)
-
-
 class BaseTestPercentage(object):
     cmdline = None
 
@@ -134,7 +112,6 @@ class BaseTestPercentage(object):
         value = self.alignment_function(A, B, model)
 
         self.assertIn("{}%".format(value), output)
-
 
 class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
     cmdline = "yalign-evaluate-alignment {corpus} {model}"
