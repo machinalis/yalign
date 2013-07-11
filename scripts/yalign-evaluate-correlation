@@ -28,5 +28,8 @@ if __name__ == "__main__":
     sentence_pair_score.train(alignments, word_pair_score)
 
     cor = correlation(sentence_pair_score.classifier)
-    for attr, value in cor.iteritems():
-        print "{:30}: {:.3f}".format(attr.name, value)
+    cor = dict([(x.name, y) for x, y in cor.iteritems()])
+    names = cor.keys()
+    names.sort()
+    for name in names:
+        print "{:30}: {:.3f}".format(name, cor[name])
