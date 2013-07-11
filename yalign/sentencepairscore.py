@@ -92,7 +92,6 @@ class SentencePairScoreProblem(ClassificationProblem):
         value = len(aligns) / float(N)
         return value
 
-    @is_attribute
     def position_difference(self, alignment):
         d = alignment.a.position - alignment.b.position
         return abs(d)
@@ -143,6 +142,9 @@ class SentencePairScoreProblem(ClassificationProblem):
     @is_attribute
     def word_match(self, alignment):
         a, b = list(alignment.a), list(alignment.b)
+        diff = abs(len(a) - len(b))
+        if diff > 2*len(a) or diff > 2*len(b):
+            return 1
         word_pairs = self._word_pairs(alignment)
         score = 0
         for cost, word_a, word_b in word_pairs:
@@ -151,17 +153,25 @@ class SentencePairScoreProblem(ClassificationProblem):
                 a.remove(word_a)
                 b.remove(word_b)
         score += len(a) + len(b)
-        return float(score) / (len(alignment.a) + len(alignment.b))
+        return float(score) / max(len(alignment.a),len(alignment.b))
 
-    def _word_pairs(self, alignment):
-        a, b = alignment
+
+    def _word_pairs(self, sentencepair):
+        a, b = sentencepair
         pairs = []
         for word_a in a:
+            item = []
+            max_score = 1
             for word_b in b:
-                item = self.word_pair_score(word_a, word_b), word_a, word_b
+                cost = self.word_pair_score(word_a, word_b)
+                if cost < max_score:
+                    max_score = cost
+                    item = (max_score, word_a, word_b)
+            if item:
                 pairs.append(item)
         pairs.sort()
         return pairs
+
 
     def target(self, alignment):
         return alignment.aligned
