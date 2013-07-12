@@ -4,7 +4,6 @@ import math
 from simpleai.machine_learning import ClassificationProblem, is_attribute
 
 from yalign.datatypes import ScoreFunction, SentencePair
-from yalign.sequencealigner import SequenceAligner
 from yalign.svm import SVMClassifier
 
 
@@ -58,10 +57,6 @@ class SentencePairScore(ScoreFunction):
         return result
 
     @property
-    def sentence_pair_aligner(self):
-        return self.classifier.problem.aligner
-
-    @property
     def word_pair_score(self):
         return self.classifier.problem.word_pair_score
 
@@ -71,27 +66,8 @@ class SentencePairScoreProblem(ClassificationProblem):
         super(SentencePairScoreProblem, self).__init__()
         # If gap > 0.5 then the returned value could be > 1.
         self.word_pair_score = word_pair_score
-        self.aligner = SequenceAligner(word_pair_score, 0.4999)
-        self.aligner = CacheOfSizeOne(self.aligner)
 
-    def word_score(self, alignment):
-        raise Exception
-        aligns = self.aligner(alignment.a, alignment.b)
-        N = max(len(alignment.a), len(alignment.b))
-        word_score = sum(x[2] for x in aligns) / float(N)
-
-        # FIXME: Consider moving this to a test
-        assert 0 <= word_score <= 1
-        return word_score
-
-    def amount_of_alignments(self, alignment):
-        raise Exception
-        aligns = self.aligner(alignment.a, alignment.b)
-        aligns = [x for x in aligns if x[0] is not None and x[1] is not None]
-        N = max(len(alignment.a), len(alignment.b))
-        value = len(aligns) / float(N)
-        return value
-
+    @is_attribute
     def position_difference(self, alignment):
         d = alignment.a.position - alignment.b.position
         return abs(d)
@@ -143,22 +119,19 @@ class SentencePairScoreProblem(ClassificationProblem):
     def word_match(self, alignment):
         a, b = list(alignment.a), list(alignment.b)
         diff = abs(len(a) - len(b))
-        if diff > 2*len(a) or diff > 2*len(b):
+        if diff > 2 * len(a) or diff > 2 * len(b):
             return 1
-        word_pairs = self._word_pairs(alignment)
         score = 0
-        for cost, word_a, word_b in word_pairs:
+        for cost, word_a, word_b in self._word_pairs(alignment):
             if word_a in a and word_b in b:
                 score += cost
                 a.remove(word_a)
                 b.remove(word_b)
         score += len(a) + len(b)
-        return float(score) / max(len(alignment.a),len(alignment.b))
-
+        return float(score) / max(len(alignment.a), len(alignment.b))
 
     def _word_pairs(self, sentencepair):
         a, b = sentencepair
-        pairs = []
         for word_a in a:
             item = []
             max_score = 1
@@ -168,11 +141,9 @@ class SentencePairScoreProblem(ClassificationProblem):
                     max_score = cost
                     item = (max_score, word_a, word_b)
             if item:
-                pairs.append(item)
-        pairs.sort()
-        return pairs
+                yield item
 
-    @is_attribute
+    #@is_attribute
     def linear_word_match(self, alignment):
         values = {}
         translations = self.word_pair_score.translations
@@ -184,8 +155,7 @@ class SentencePairScoreProblem(ClassificationProblem):
         total = 0.0
         for word_b in alignment.b:
             word_b = word_b.lower()
-            if word_b in values:
-                total += values[word_b]
+            total += values.get(word_b, 0)
 
         return total / float(max(len(alignment.a), len(alignment.b)))
 

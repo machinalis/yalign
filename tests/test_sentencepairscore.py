@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from yalign.datatypes import Sentence
+from yalign.datatypes import Sentence, SentencePair
 from yalign.wordpairscore import WordPairScore
 from yalign.sentencepairscore import SentencePairScore, CacheOfSizeOne
 from yalign.input_conversion import parallel_corpus_to_documents
@@ -48,19 +48,16 @@ class TestSentencePairScore(unittest.TestCase):
             self.assertGreaterEqual(score, self.score.min_bound)
             self.assertLessEqual(score, self.score.max_bound)
 
-    def test_alignment_is_better_than_all_gaps(self):
+    def test_linear_word_count_is_better_than_all_mismatchs(self):
         a = Sentence(u"house µa µb µc µd".split(), position=0.0)
         b = Sentence(u"casa  µ1 µ2 µ3 µ4".split(), position=0.0)
-        align1 = self.score.problem.aligner(a, b)
+        s1 = self.score.problem.linear_word_count(SentencePair(a, b))
 
         c = Sentence(u"µx µa µb µc µd".split(), position=0.0)
         d = Sentence(u"µ5 µ1 µ2 µ3 µ4".split(), position=0.0)
-        align2 = self.score.problem.aligner(c, d)
+        s2 = self.score.problem.linear_word_count(SentencePair(c, d))
 
-        s1 = sum(x[2] for x in align1)
-        s2 = sum(x[2] for x in align2)
-
-        self.assertLess(s1, s2)
+        self.assertGreater(s1, s2)
 
 
 class TestCacheOfSizeOne(unittest.TestCase):

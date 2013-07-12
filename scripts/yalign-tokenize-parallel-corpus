@@ -39,5 +39,6 @@ if __name__ == "__main__":
     lang_a = args['--lang-a']
     lang_b = args['--lang-b']
     for a, b in sentences(source):
-        output.write(tokenized_text(a)+'\n')
-        output.write(tokenized_text(b)+'\n')
+        output.write(tokenized_text(a, lang_a) + '\n')
+        output.write(tokenized_text(b, lang_b) + '\n')
+    output.close()
