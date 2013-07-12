@@ -23,6 +23,8 @@ class WordPairScore(ScoreFunction):
         data = csv.reader(open(self.filepath))
         for elem in data:
             word_a, word_b, prob = elem
+            word_a = word_a.decode("utf-8").lower()
+            word_b = word_b.decode("utf-8").lower()
             if word_a not in self.translations:
                 self.translations[word_a] = {}
             self.translations[word_a][word_b] = float(prob)

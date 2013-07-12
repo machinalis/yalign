@@ -172,6 +172,39 @@ class SentencePairScoreProblem(ClassificationProblem):
         pairs.sort()
         return pairs
 
+    @is_attribute
+    def linear_word_match(self, alignment):
+        values = {}
+        translations = self.word_pair_score.translations
+        for word_a in alignment.a:
+            word_a = word_a.lower()
+            if word_a in translations:
+                values.update(translations[word_a])
+
+        total = 0.0
+        for word_b in alignment.b:
+            word_b = word_b.lower()
+            if word_b in values:
+                total += values[word_b]
+
+        return total / float(max(len(alignment.a), len(alignment.b)))
+
+    @is_attribute
+    def linear_word_count(self, alignment):
+        values = []
+        translations = self.word_pair_score.translations
+        for word_a in alignment.a:
+            word_a = word_a.lower()
+            if word_a in translations:
+                values.extend(translations[word_a].keys())
+
+        total = 0.0
+        for word_b in alignment.b:
+            word_b = word_b.lower()
+            if word_b in values:
+                total += 1.0
+
+        return total / float(max(len(alignment.a), len(alignment.b)))
 
     def target(self, alignment):
         return alignment.aligned
