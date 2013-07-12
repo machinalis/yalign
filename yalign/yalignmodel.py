@@ -51,12 +51,8 @@ class YalignModel(object):
         return self.document_pair_aligner.score
 
     @property
-    def sentence_pair_aligner(self):
-        return self.sentence_pair_score.sentence_pair_aligner
-
-    @property
     def word_pair_score(self):
-        return self.sentence_pair_aligner.score
+        return self.sentence_pair_score.word_pair_score
 
     def align(self, document_a, document_b):
         alignments = self.align_indexes(document_a, document_b)

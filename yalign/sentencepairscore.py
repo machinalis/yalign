@@ -4,7 +4,6 @@ import math
 from simpleai.machine_learning import ClassificationProblem, is_attribute
 
 from yalign.datatypes import ScoreFunction, SentencePair
-from yalign.sequencealigner import SequenceAligner
 from yalign.svm import SVMClassifier
 
 
@@ -58,10 +57,6 @@ class SentencePairScore(ScoreFunction):
         return result
 
     @property
-    def sentence_pair_aligner(self):
-        return self.classifier.problem.aligner
-
-    @property
     def word_pair_score(self):
         return self.classifier.problem.word_pair_score
 
@@ -71,27 +66,8 @@ class SentencePairScoreProblem(ClassificationProblem):
         super(SentencePairScoreProblem, self).__init__()
         # If gap > 0.5 then the returned value could be > 1.
         self.word_pair_score = word_pair_score
-        self.aligner = SequenceAligner(word_pair_score, 0.4999)
-        self.aligner = CacheOfSizeOne(self.aligner)
 
-    def word_score(self, alignment):
-        raise Exception
-        aligns = self.aligner(alignment.a, alignment.b)
-        N = max(len(alignment.a), len(alignment.b))
-        word_score = sum(x[2] for x in aligns) / float(N)
-
-        # FIXME: Consider moving this to a test
-        assert 0 <= word_score <= 1
-        return word_score
-
-    def amount_of_alignments(self, alignment):
-        raise Exception
-        aligns = self.aligner(alignment.a, alignment.b)
-        aligns = [x for x in aligns if x[0] is not None and x[1] is not None]
-        N = max(len(alignment.a), len(alignment.b))
-        value = len(aligns) / float(N)
-        return value
-
+    @is_attribute
     def position_difference(self, alignment):
         d = alignment.a.position - alignment.b.position
         return abs(d)
@@ -172,7 +148,7 @@ class SentencePairScoreProblem(ClassificationProblem):
         pairs.sort()
         return pairs
 
-    @is_attribute
+    #@is_attribute
     def linear_word_match(self, alignment):
         values = {}
         translations = self.word_pair_score.translations

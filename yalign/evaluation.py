@@ -97,38 +97,6 @@ def alignment_percentage(document_a, document_b, model):
     return round(ratio * 100, 2)
 
 
-def word_alignment_percentage(document_a, document_b, model):
-    """
-    Returns the percentage of word alignments of `document_a` and `document_b`
-    `document_a` and `document_b` are yalign documents.
-    `model` can be a YalignModel or a path to a yalign model.
-    The return value it's a float between 0.0 and 100.0
-    """
-
-    wordcount_a = sum([len(sentence) for sentence in document_a])
-    wordcount_b = sum([len(sentence) for sentence in document_b])
-    wordcount_aligned = 0.0
-
-    if wordcount_a == 0 or wordcount_b == 0:
-        return 100.0 if (wordcount_a == 0 and wordcount_b == 0) else 0.0
-
-    sentence_align = model.document_pair_aligner(document_a, document_b)
-    sentence_align = [x for x in sentence_align if
-                      x[0] is not None and x[1] is not None]
-
-    word_aligner = SequenceAligner(model.word_pair_score, 4.999)
-    for pair in sentence_align:
-        sentence_a = document_a[pair[0]]
-        sentence_b = document_b[pair[1]]
-        word_align = word_aligner(sentence_a, sentence_b)
-        word_align = [x for x in word_align if
-                      x[0] is not None and x[1] is not None]
-        wordcount_aligned += len(word_align)
-
-    ratio = wordcount_aligned / min(wordcount_a, wordcount_b)
-    return round(ratio * 100.0, 2)
-
-
 def word_translations_percentage(document_a, document_b, model):
     """
     Returns the percentage of word that are contained in the model's
