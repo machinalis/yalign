@@ -122,7 +122,7 @@ class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
 
     def test_alignment(self):
         document_a = self.document_a
-        document_b = self.document_b[::-1]
+        document_b = [self.document_b[0]]
         p = self.alignment_function(document_a, document_b, self.model)
         self.assertEqual(p, 50.0)
 
