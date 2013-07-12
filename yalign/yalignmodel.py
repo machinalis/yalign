@@ -14,7 +14,8 @@ from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parse_training_file, parse_tmx_file, \
     parallel_corpus_to_documents
-from yalign.train_data_generation import training_alignments_from_documents
+from yalign.train_data_generation import training_alignments_from_documents, \
+                                         training_scrambling_from_documents
 
 
 def basic_model(corpus_filepath, word_scores_filepath,
@@ -25,11 +26,15 @@ def basic_model(corpus_filepath, word_scores_filepath,
 
     if corpus_filepath.endswith(".csv"):
         alignments = parse_training_file(corpus_filepath)
+        if optimize:
+            raise ValueError("Cannot optmize usign a csv corpus!")
     else:
         if corpus_filepath.endswith(".tmx"):
             A, B = parse_tmx_file(corpus_filepath, lang_a, lang_b)
         else:
             A, B = parallel_corpus_to_documents(corpus_filepath)
+        A = list(A)
+        B = list(B)
         alignments = training_alignments_from_documents(A, B)
 
     sentence_pair_score = SentencePairScore()
@@ -37,6 +42,9 @@ def basic_model(corpus_filepath, word_scores_filepath,
     # Yalign model
     document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
     model = YalignModel(document_aligner, threshold)
+    if optimize:
+        A, B, correct = training_scrambling_from_documents(A[:100], B[:100])
+        model.optimize_gap_penalty_and_threshold(A, B, correct)
     return model
 
 
