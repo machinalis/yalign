@@ -56,12 +56,12 @@ def text_to_document(text, language="en"):
 
 def html_to_document(html, language="en"):
     soup = BeautifulSoup(html)
-    text = soup.body.get_text()
+    text = '\n'.join([tag.get_text() for tag in soup.find_all('p')])
     return text_to_document(text, language)
 
 
-MIN_LINES = 10
-MAX_LINES = 10
+MIN_LINES = 20
+MAX_LINES = 20
 
 
 def generate_documents(filepath, m=MIN_LINES, n=MAX_LINES):
