@@ -6,3 +6,4 @@ scikit-learn
 nltk
 beautifulsoup4
 mock
+html5lib
