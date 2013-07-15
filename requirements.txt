@@ -7,3 +7,4 @@ nltk
 beautifulsoup4
 mock
 html5lib
+lxml >= 2.1.5
