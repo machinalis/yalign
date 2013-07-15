@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def _is_tokenized(word):
     """
     Runs some checks to see if the word is tokenized.
@@ -11,8 +12,8 @@ def _is_tokenized(word):
     return not ((word.endswith(".") or word.endswith(",")) and
                 word[:-1].isalpha())
 
-class Sentence(list):
 
+class Sentence(list):
     def __init__(self, iterable=None, position=None):
         if position is not None:
             if not(0 <= position <= 1):
@@ -23,12 +24,11 @@ class Sentence(list):
         else:
             super(Sentence, self).__init__()
 
-
     def check_is_tokenized(self):
         message = u"Word {!r} is not tokenized"
         for word in self:
             if not _is_tokenized(word):
-               raise ValueError(message.format(word))
+                raise ValueError(message.format(word))
 
     def to_text(self):
         return ' '.join(self).encode('utf-8')

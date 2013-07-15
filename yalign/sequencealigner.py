@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from simpleai.search import SearchProblem, astar
-from simpleai.search.viewers import ConsoleViewer
+
 
 class SequenceAligner(object):
     def __init__(self, weight, gap_penalty):

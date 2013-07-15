@@ -3,12 +3,8 @@
 """
 Module to generate training data.
 """
-import re
 import random
 from datatypes import SentencePair
-
-from bs4 import BeautifulSoup
-from nltk import sent_tokenize
 
 
 def training_alignments_from_documents(document_a, document_b, mix=0.5):
@@ -21,7 +17,8 @@ def training_alignments_from_documents(document_a, document_b, mix=0.5):
     """
     if not len(document_a) == len(document_b):
         raise ValueError("Documents must be the same size")
-    document_a, document_b, alignments = training_scrambling_from_documents(document_a, document_b)
+    document_a, document_b, alignments = \
+                    training_scrambling_from_documents(document_a, document_b)
     for sample in _aligned_samples(document_a, document_b, alignments):
         yield sample
     for sample in _misaligned_samples(document_a, document_b, alignments):
@@ -133,18 +130,3 @@ def random_range(N, span=10):
         random.shuffle(ys)
         xs += ys
     return xs
-
-
-BAD_CHARS_PATTERN = re.compile('(\n|\t)+')
-
-
-def text_to_corpus(text):
-    """Extract sentences split by newlines from plain text."""
-    return [re.sub(BAD_CHARS_PATTERN, ' ', x.strip()) for x in sent_tokenize(text)]
-
-
-def html_to_corpus(html_text):
-    """Extract sentences split by newlines from html."""
-    soup = BeautifulSoup(html_text)
-    text = soup.body.get_text()
-    return text_to_corpus(text)

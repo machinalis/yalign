@@ -163,36 +163,5 @@ class TestRandomRange(unittest.TestCase):
         self.assertEquals([1, 0, 3, 2, 4], random_range(5))
 
 
-class TestHTMLToCorpus(unittest.TestCase):
-    def test_extract(self):
-        html = "<html><head></head><body><p>Hello Peter</p></body></html>"
-        self.assertEquals([u'Hello Peter'], html_to_corpus(html))
-        html = "<html><head></head><body><p>Hello Peter. Go for gold.</p></body></html>"
-        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_corpus(html))
-
-    def test_newlines(self):
-        html = "<html><head></head>\n\n<body><p>\nHello Peter.\n\n\n Go for gold.\n</p>\n</body></html>"
-        self.assertEquals([u'Hello Peter.', u'Go for gold.'], html_to_corpus(html))
-
-    def test_remove_whitespacing(self):
-        html = "<html><head></head><body><p>Wow\n\tWhat now?\t\t</p></body></html>"
-        self.assertEquals([u'Wow What now?'], html_to_corpus(html))
-
-    def test_sentence_splitting(self):
-        html = "<html><head></head><body><p>Wow!! I did not know! Are you sure?</p></body></html>"
-        self.assertEquals([u'Wow!!', u'I did not know!', u'Are you sure?'], html_to_corpus(html))
-
-
-class TestTextToCorpus(unittest.TestCase):
-    def test_sentence_splitting(self):
-        lines = ['So there we were.', 'In the middle of nowhere!', 'Where to from here?', 'I cried..']
-        paragraph = ' '.join(lines)
-        self.assertEquals(lines, text_to_corpus(paragraph))
-
-    def test_remove_whitespacing(self):
-        html = "Wow\n\tWhat now?\t\t"
-        self.assertEquals([u'Wow What now?'], text_to_corpus(html))
-
-
 if __name__ == "__main__":
     unittest.main()

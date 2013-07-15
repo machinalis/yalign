@@ -46,7 +46,7 @@ class SVMClassifier(Classifier):
 
     def __getstate__(self):
         result = self.__dict__.copy()
-        if result.has_key("dataset"):
+        if "dataset" in result:
             del result["dataset"]
         return result
 
@@ -57,7 +57,7 @@ def correlation(classifier, dataset=None):
     For more information see:
         - http://en.wikipedia.org/wiki/Correlation_and_dependence
     """
-    if dataset == None:
+    if dataset is None:
         assert hasattr(classifier, "dataset")
         dataset = classifier.dataset
 

@@ -50,7 +50,8 @@ def basic_model(corpus_filepath, word_scores_filepath,
 
 
 class YalignModel(object):
-    def __init__(self, document_pair_aligner=None, threshold=None, metadata=None):
+    def __init__(self, document_pair_aligner=None,
+                       threshold=None, metadata=None):
         self.document_pair_aligner = document_pair_aligner
         self.threshold = threshold
         self.metadata = MetadataHelper(metadata)

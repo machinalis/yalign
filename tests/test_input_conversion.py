@@ -187,6 +187,37 @@ class TestHtmlToDocument(unittest.TestCase):
             for word in sentence:
                 self.assertIsInstance(word, unicode)
 
+    def test_extract(self):
+        html = "<html><head></head><body><p>Hello Peter</p></body></html>"
+        d = [list(xs) for xs in html_to_document(html, "en")]
+        self.assertEquals([u'Hello Peter'.split()], d)
+        html = ("<html><head></head><body><p>Hello Peter. "
+                "Go for gold.</p></body></html>")
+        d = [list(xs) for xs in html_to_document(html, "en")]
+        self.assertEquals([u'Hello Peter .'.split(), u'Go for gold .'.split()],
+                           d)
+
+    def test_newlines(self):
+        html = ("<html><head></head>\n\n<body><p>\nHello Peter."
+                "\n\n\n Go for gold.\n</p>\n</body></html>")
+        d = [list(xs) for xs in html_to_document(html, "en")]
+        self.assertEquals([u'Hello Peter .'.split(), u'Go for gold .'.split()],
+                          d)
+
+    def test_remove_whitespacing(self):
+        html = ("<html><head></head><body><p>Wow\n\tWhat now?\t\t"
+                "</p></body></html>")
+        d = [list(xs) for xs in html_to_document(html, "en")]
+        self.assertEquals([u'Wow What now ?'.split()], d)
+
+    def test_sentence_splitting(self):
+        html = ("<html><head></head><body><p>Wow!! "
+                "I did not know! Are you sure?</p></body></html>")
+        d = [list(xs) for xs in html_to_document(html, "en")]
+        self.assertEquals([u'Wow !!'.split(),
+                           u'I did not know !'.split(),
+                           u'Are you sure ?'.split()], d)
+
 
 class TestParallelCorpusDocument(unittest.TestCase):
     def setUp(self):
