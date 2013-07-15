@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import json
-import random
 import tempfile
 import unittest
 import subprocess
-from itertools import izip
 
 from yalign import yalignmodel
 from yalign.evaluation import *
@@ -15,8 +12,6 @@ from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parallel_corpus_to_documents
-
-from helpers import default_sentence_pair_score
 
 basepath = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(basepath, "data")
@@ -112,6 +107,7 @@ class BaseTestPercentage(object):
         value = self.alignment_function(A, B, model)
 
         self.assertIn("{}%".format(value), output)
+
 
 class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
     cmdline = "yalign-evaluate-alignment {corpus} {model}"
