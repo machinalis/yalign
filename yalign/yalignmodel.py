@@ -27,7 +27,7 @@ def basic_model(corpus_filepath, word_scores_filepath,
     if corpus_filepath.endswith(".csv"):
         alignments = parse_training_file(corpus_filepath)
         if optimize:
-            raise ValueError("Cannot optmize usign a csv corpus!")
+            raise ValueError("Cannot optmize using a csv corpus!")
     else:
         if corpus_filepath.endswith(".tmx"):
             A, B = parse_tmx_file(corpus_filepath, lang_a, lang_b)
