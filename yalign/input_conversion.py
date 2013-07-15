@@ -13,6 +13,8 @@ from nltk.data import load as nltkload
 from yalign.tokenizers import get_tokenizer
 from yalign.datatypes import Sentence, SentencePair
 
+MIN_LINES = 20
+MAX_LINES = 20
 XMLNS = "{http://www.w3.org/XML/1998/namespace}"
 STRIP_TAGS_REGEXP = re.compile("(>)(.*)(<)", re.DOTALL)
 
@@ -60,10 +62,6 @@ def html_to_document(html, language="en"):
     return text_to_document(text, language)
 
 
-MIN_LINES = 20
-MAX_LINES = 20
-
-
 def generate_documents(filepath, m=MIN_LINES, n=MAX_LINES):
     """
     Document generator. Documents are created from the parallel corpus and
@@ -105,7 +103,6 @@ def parallel_corpus_to_documents(filepath):
 def _next_documents(parallel_corpus, N=None):
     lines_a, lines_b = _split_parallel_corpus(parallel_corpus, N)
     return _document(lines_a), _document(lines_b)
-
 
 
 def _document(lines):
@@ -199,6 +196,7 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
         document_b.append(sentences[lang_b])
 
     return document_a, document_b
+
 
 def host_and_page(url):
     url = url.split('//')[1]

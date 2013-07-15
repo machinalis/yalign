@@ -85,43 +85,6 @@ def alignment_percentage(document_a, document_b, model):
     return round(ratio * 100, 2)
 
 
-def word_translations_percentage(document_a, document_b, model):
-    """
-    Returns the percentage of word that are contained in the model's
-    dictionary.
-    """
-    if len(document_a) == 0 or len(document_b) == 0:
-        if len(document_a) == 0 and len(document_b) == 0:
-            return 100.0
-        else:
-            return 0.0
-
-    sentence_align = model.document_pair_aligner(document_a, document_b)
-    sentence_align = [x for x in sentence_align if
-                      x[0] is not None and x[1] is not None]
-
-    word_aligner = SequenceAligner(model.word_pair_score, 4.999)
-    count = 0.0
-    total = 0.0
-    for pair in sentence_align:
-        sentence_a = document_a[pair[0]]
-        sentence_b = document_b[pair[1]]
-        word_align = word_aligner(sentence_a, sentence_b)
-        word_align = [x for x in word_align if
-                      x[0] is not None and x[1] is not None]
-
-        for word_pair in word_align:
-            word_a = sentence_a[word_pair[0]]
-            word_b = sentence_b[word_pair[1]]
-            if word_a in model.word_pair_score.translations:
-                if word_b in model.word_pair_score.translations[word_a]:
-                    count += 1.0
-            total += 1.0
-
-    ratio = count / total
-    return round(ratio * 100.0, 2)
-
-
 def classifier_precision(document_a, document_b, model):
     """
     Runs a ten-fold validation on the classifier and returns

@@ -62,10 +62,7 @@ class SentencePairScore(ScoreFunction):
 class SentencePairScoreProblem(ClassificationProblem):
     def __init__(self, word_pair_score):
         super(SentencePairScoreProblem, self).__init__()
-        self.word_pair_score = word_pair_score
-        translations = self.word_pair_score.translations
-        word_translations = WordsTranslations(translations)
-        self.word_translations = CacheOfSizeOne(word_translations)
+        self.word_pair_score = CacheOfSizeOne(word_pair_score)
 
     @is_attribute
     def word_length_difference(self, alignment):
@@ -75,12 +72,12 @@ class SentencePairScoreProblem(ClassificationProblem):
 
     @is_attribute
     def linear_word_match(self, alignment):
-        total = sum(self.word_translations(alignment))
+        total = sum(self.word_pair_score(alignment.a, alignment.b))
         return total / float(max(len(alignment.a), len(alignment.b)))
 
     @is_attribute
     def linear_word_count(self, alignment):
-        total = len(self.word_translations(alignment))
+        total = len(self.word_pair_score(alignment.a, alignment.b))
         return total / float(max(len(alignment.a), len(alignment.b)))
 
     def target(self, alignment):
@@ -98,30 +95,6 @@ def logistic_function(x):
     See: http://en.wikipedia.org/wiki/Logistic_function
     """
     return 1 / (1 + math.e ** (-x))
-
-
-class WordsTranslations(object):
-    """
-    Using a dictionary of translations in
-    linear time returns a list of probabilities
-    for the words translations.
-    """
-
-    def __init__(self, translations):
-        self.translations = translations
-
-    def __call__(self, alignment):
-        result = []
-        values = {}
-        for word_a in alignment.a:
-            word_a = word_a.lower()
-            if word_a in self.translations:
-                values.update(self.translations[word_a])
-        for word_b in alignment.b:
-            word_b = word_b.lower()
-            if word_b in values:
-                result.append(values[word_b])
-        return result
 
 
 class CacheOfSizeOne(object):

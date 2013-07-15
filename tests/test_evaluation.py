@@ -123,14 +123,6 @@ class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
         self.assertEqual(p, 50.0)
 
 
-class TestTranslationPercentage(BaseTestPercentage, unittest.TestCase):
-    cmdline = "yalign-evaluate-translations-alignment {corpus} {model}"
-
-    @staticmethod
-    def alignment_function(document_a, document_b, model):
-        return word_translations_percentage(document_a, document_b, model)
-
-
 class TestClassifierPrecision(unittest.TestCase):
     def setUp(self):
         word_scores = os.path.join(data_path, "test_word_scores_big.csv")
