@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Module to score the accuracy of alignments.
+Module to evaluate the accuracy.
 """
 
 import numpy
@@ -10,14 +10,9 @@ from simpleai.machine_learning import kfold
 from yalign.svm import SVMClassifier
 from yalign.sequencealigner import SequenceAligner
 from yalign.input_conversion import generate_documents
-from yalign.train_data_generation import training_scrambling_from_documents, \
-                                         training_alignments_from_documents
+from yalign.train_data_generation import training_scrambling_from_documents
+from yalign.train_data_generation import training_alignments_from_documents
 
-
-def optimize(parallel_corpus, model, N=100):
-
-    for idx, docs in enumerate(generate_documents(parallel_corpus)):
-        A, B, alignments = training_scrambling_from_documents(*docs)
 
 def evaluate(parallel_corpus, model, N=100):
     """
@@ -28,7 +23,6 @@ def evaluate(parallel_corpus, model, N=100):
         * gap_penalty, threshold: parameters for squence alignments
         * N: Number of trials
     """
-    from yalign.yalignmodel import YalignModel
 
     results = []
     for idx, docs in enumerate(generate_documents(parallel_corpus)):
@@ -36,9 +30,10 @@ def evaluate(parallel_corpus, model, N=100):
         predicted_alignments = model.align_indexes(A, B)
         scores = F_score(predicted_alignments, alignments)
         results.append(scores)
-        if idx >= N -1:
+        if idx >= N - 1:
             break
     return _stats(results)
+
 
 def _stats(xs):
     return dict(max=numpy.amax(xs, 0),
@@ -72,13 +67,6 @@ def recall(xs, ys):
     return len([x for x in xs if x in ys]) / float(len(ys)) if ys else 0.
 
 
-def documents(parallel_corpus):
-    """Provides an endless stream of documents"""
-    while True:
-        A, B = parallel_corpus_to_documents(parallel_corpus)
-        yield A, B
-
-
 def alignment_percentage(document_a, document_b, model):
     """
     Returns the percentage of alignments of `document_a` and `document_b`
@@ -102,7 +90,6 @@ def word_translations_percentage(document_a, document_b, model):
     Returns the percentage of word that are contained in the model's
     dictionary.
     """
-
     if len(document_a) == 0 or len(document_b) == 0:
         if len(document_a) == 0 and len(document_b) == 0:
             return 100.0
@@ -136,6 +123,10 @@ def word_translations_percentage(document_a, document_b, model):
 
 
 def classifier_precision(document_a, document_b, model):
+    """
+    Runs a ten-fold validation on the classifier and returns
+    a value between 0 and 100 meaning how good it is.
+    """
     if len(document_a) == 0 and len(document_b) == 0:
         return 0.0
 
