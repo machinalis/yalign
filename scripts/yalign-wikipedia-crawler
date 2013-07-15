@@ -1,0 +1,167 @@
+#!/usr/bin/env python
+# coding: utf-8
+"""
+Usage:
+    yalign-wikipedia-crawler [options] <url> <out>
+
+Options:
+  -n --number-of-pages=<number-of-pages>  Max number of pages to explore [default: 100]
+"""
+from docopt import docopt
+from bs4 import BeautifulSoup
+from yalign.input_conversion import read_from_url
+
+class Node(object):
+
+    def __init__(self, label, children=None):
+        self.label = label
+        self.children = children or []
+
+    def __repr__(self):
+        return '%s %s' % (self.label, self.children if self.children else '')
+
+    def __len__(self):
+        return 1 + sum([len(child) for child in self.children])
+
+def _prepare(tree):
+    nodes, roots, lmds = [None], [], [None]
+
+    def explore(node, is_root):
+        lmc = node
+        for idx, child in enumerate(node.children):
+            if idx == 0:
+                lmc = explore(child, False)
+            else:
+                explore(child, True)
+        nodes.append(node)
+        lmds.append(nodes.index(lmc))
+        if is_root:
+            roots.append(len(nodes) - 1)
+        return lmc
+
+    explore(tree, True)
+    return nodes, roots, lmds
+
+def tree_edit_dist(tree1, tree2):
+    """
+    See: http://www.grantjenks.com/wiki/_media/ideas:simple_fast_algorithms_for_the_editing_distance_between_tree_and_related_problems.pdf
+    """
+    td = [[0] * (len(tree2)+1) for x in xrange(len(tree1)+1)]
+    nodes1, kr1, l1 = _prepare(tree1)
+    nodes2, kr2, l2 = _prepare(tree2)
+
+    def forest_dist(i, j):
+        fd = [[0] * len(td[0]) for x in xrange(len(td))]
+
+        for d in xrange(l1[i], i+1):
+            fd[d][l2[j] - 1] = fd[d - 1][l2[j] - 1] + 1
+
+        for d in xrange(l2[j], j+1):
+            fd[l1[i] - 1][d] = fd[l1[i] - 1][d - 1] + 1
+
+
+        for x in xrange(max(1,l1[i]), i+1):
+            for y in xrange(max(1, l2[j]), j+1):
+                if l1[x] == l1[i] and l2[y] == l2[j]:
+                    fd[x][y] = min(fd[x-1][y] + 1,
+                                   fd[x][y-1] + 1,
+                                   fd[x-1][y-1] +
+                                    (0 if nodes1[x].label == nodes2[y].label else 1))
+                    td[x][y] = fd[x][y]
+                else:
+                    fd[x][y] = min(fd[x-1][y] + 1,
+                                   fd[x][y-1] + 1,
+                                   fd[l1[x] - 1][l2[y] - 1] + td[x][y])
+    for i in kr1:
+        for j in kr2:
+            forest_dist(i, j)
+
+    return td[-1][-1]
+
+
+def test_tree_edit_dist():
+    assert 0 == tree_edit_dist(Node('A'),Node('A'))
+    assert 1 == tree_edit_dist(Node('A'),Node('B'))
+    assert 2 == tree_edit_dist(Node('A'),Node('B',[Node('C')]))
+    assert 2 == tree_edit_dist(Node('B',[Node('C')]), Node('A'))
+    assert 1 == tree_edit_dist(Node('A',[Node('C')]), Node('A'))
+    assert 1 == tree_edit_dist(Node('A',[Node('C')]), Node('A',[Node('B')]))
+
+    A = Node('f',
+            [Node('d',
+                [Node('a'),
+                 Node('c',
+                    [Node('b')])]),
+            Node('e')])
+
+    B = Node('f',
+            [Node('c',
+                [Node('d',
+                    [Node('a'),
+                     Node('b')])]),
+             Node('e')])
+
+    assert 2 == tree_edit_dist(A,B)
+    print "Tests passed"
+
+def to_node(tag):
+    node = Node(tag.name)
+    node.children = list([to_node(child)
+                            for child in tag.findChildren(recursive=False)
+                            if child.name in ('ul', 'li')])
+    return node
+
+def get_url(soup, language):
+    a = soup.find('a', hreflang=language)
+    return 'https:'+a['href']
+
+def get_toc_node(soup):
+    div = soup. find('div', id="toctitle")
+    ul = div.find_next('ul')
+    return to_node(ul)
+
+def next_urls(url, soup):
+    base = url[:url.rindex('/wiki/')]
+    return [base + a['href']
+            for p in soup.find_all('p')
+            for a in p.find_all('a')
+            if a['href'].startswith('/wiki/')
+            if a['href'].count('#') == 0]
+
+def analyze(language, results, out, q, N=100):
+    url = q.pop(0)
+    explored_urls = list([x[1] for x in results])
+    if url in explored_urls:
+        return
+    try:
+        base = url[:url.rindex('/')]
+        html = read_from_url(url)
+        soup1 = BeautifulSoup(html, "html5lib")
+        toc1 = get_toc_node(soup1)
+
+        url2 = get_url(soup1, language)
+        html = read_from_url(url2)
+        soup2 = BeautifulSoup(html, "html5lib")
+        toc2 = get_toc_node(soup2)
+
+        score = float(tree_edit_dist(toc1, toc2)) / max(len(toc1), len(toc2))
+        results.append((score, url, url2))
+        print score, url, url2
+        out.write('%.4f %s %s' % (score, url, url2))
+        out.write('\n')
+        out.flush()
+        if (len(q) / 4.) < N:
+             q += list([x for x in next_urls(url, soup1)
+                        if not x in explored_urls])
+    except Exception as e:
+        print url, e
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    results = []
+    url = args['<url>']
+    q = [url]
+    N = int(args['--number-of-pages'])
+    f = open(args['<out>'], 'w')
+    while len(results) < N and len(q) > 0:
+        analyze("es", results, f, q, N)
