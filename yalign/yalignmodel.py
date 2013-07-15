@@ -40,8 +40,9 @@ def basic_model(corpus_filepath, word_scores_filepath,
     sentence_pair_score = SentencePairScore()
     sentence_pair_score.train(alignments, word_pair_score)
     # Yalign model
+    metadata = {"lang_a": lang_a, "lang_b": lang_b}
     document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
-    model = YalignModel(document_aligner, threshold)
+    model = YalignModel(document_aligner, threshold, metadata=metadata)
     if optimize:
         A, B, correct = training_scrambling_from_documents(A[:100], B[:100])
         model.optimize_gap_penalty_and_threshold(A, B, correct)
@@ -49,10 +50,10 @@ def basic_model(corpus_filepath, word_scores_filepath,
 
 
 class YalignModel(object):
-    def __init__(self, document_pair_aligner=None, threshold=None):
+    def __init__(self, document_pair_aligner=None, threshold=None, metadata=None):
         self.document_pair_aligner = document_pair_aligner
         self.threshold = threshold
-        self.metadata = MetadataHelper()
+        self.metadata = MetadataHelper(metadata)
 
     @property
     def sentence_pair_score(self):
@@ -81,15 +82,17 @@ class YalignModel(object):
         metadata = os.path.join(model_directory, "metadata.json")
         aligner = os.path.join(model_directory, "aligner.pickle")
         self.metadata.update(json.load(open(metadata)))
-        self.threshold = self.metadata.threshold
         self.document_pair_aligner = pickle.load(open(aligner))
+        self.document_pair_aligner.penalty = self.metadata.penalty
+        self.threshold = self.metadata.threshold
 
     def save(self, model_directory):
         metadata = os.path.join(model_directory, "metadata.json")
         aligner = os.path.join(model_directory, "aligner.pickle")
         pickle.dump(self.document_pair_aligner, open(aligner, "w"))
         self.metadata.threshold = self.threshold
-        json.dump(dict(self.metadata), open(metadata, "w"))
+        self.metadata.penalty = self.document_pair_aligner.penalty
+        json.dump(dict(self.metadata), open(metadata, "w"), indent=4)
 
     def optimize_gap_penalty_and_threshold(self, document_a, document_b,
                                                               real_alignments):
@@ -109,6 +112,12 @@ class YalignModel(object):
 
 
 class MetadataHelper(dict):
+    def __init__(self, metadata):
+        if isinstance(metadata, dict):
+            self.update(metadata)
+        elif metadata is not None:
+            raise ValueError("Invalid metadata initial values")
+
     def __getattr__(self, key):
         try:
             return self[key]

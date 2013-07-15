@@ -64,6 +64,9 @@ class TestYalignModel(unittest.TestCase):
         new_model.load(tmp_folder)
         result_after_load = new_model.align(doc1, doc2)
         self.assertEqual(result_before_save, result_after_load)
+        self.assertEqual(self.model.threshold, new_model.threshold)
+        self.assertEqual(self.model.document_pair_aligner.penalty,
+                         new_model.document_pair_aligner.penalty)
 
     def test_reasonable_alignment(self):
         doc1 = [Sentence([u"House"], position=0),
