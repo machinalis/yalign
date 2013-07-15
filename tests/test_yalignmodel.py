@@ -81,24 +81,22 @@ class TestYalignModel(unittest.TestCase):
                                                       self.correct_alignments)
 
     def test_optimize_gap_penalty_and_threshold_is_best(self):
-        self.assertTrue(False)  # This test requieres more thinking.
-
         def evaluate(penalty, threshold):
             self.model.document_pair_aligner.penalty = penalty
             self.model.threshold = threshold
             predicted = self.model.align_indexes(self.A, self.B)
-            print predicted, "---", self.correct_alignments, F_score(predicted, self.correct_alignments)[0]
             return F_score(predicted, self.correct_alignments)[0]
 
+        random.seed(hash("Marta Facker"))
         self.model.optimize_gap_penalty_and_threshold(self.A, self.B,
                                                       self.correct_alignments)
         best_score = evaluate(self.model.document_pair_aligner.penalty,
                               self.model.threshold)
-        for _ in xrange(10):
+        for _ in xrange(50):
             penalty = random.uniform(self.min_, self.max_ / 2.0)
             threshold = random.uniform(self.min_, self.max_)
             score = evaluate(penalty, threshold)
-            self.assertGreater(best_score, score)
+            self.assertGreaterEqual(best_score, score)
 
 
 class TestOptimizers(unittest.TestCase):
