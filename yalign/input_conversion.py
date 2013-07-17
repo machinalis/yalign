@@ -104,7 +104,7 @@ def parallel_corpus_to_documents(filepath):
         Y esta , mi amigo , es otra .
 
     """
-    handler = iter(codecs.open(filepath, encoding="utf-8"))
+    handler = codecs.open(filepath, encoding="utf-8")
     return _next_documents(handler)
 
 
@@ -137,6 +137,7 @@ def parse_training_file(training_file):
     """
     labels = None
     data = csv.reader(open(training_file))
+    result = []
     for elem in data:
         if labels is None:  # First line contains the labels
             labels = dict((x, elem.index(x)) for x in elem)
@@ -147,7 +148,9 @@ def parse_training_file(training_file):
         aligned = elem[labels["aligned"]] == "1"
         # FIXME: Consider moving this to a test
         assert aligned is True or aligned is False
-        yield SentencePair(sentence_a, sentence_b, aligned=aligned)
+        result.append(SentencePair(sentence_a, sentence_b, aligned=aligned))
+
+    return result
 
 
 def sentence_from_csv_elem(elem, label, labels):

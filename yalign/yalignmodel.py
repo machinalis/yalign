@@ -33,8 +33,6 @@ def basic_model(corpus_filepath, word_scores_filepath,
             A, B = parse_tmx_file(corpus_filepath, lang_a, lang_b)
         else:
             A, B = parallel_corpus_to_documents(corpus_filepath)
-        A = list(A)
-        B = list(B)
         alignments = training_alignments_from_documents(A, B)
 
     sentence_pair_score = SentencePairScore()
