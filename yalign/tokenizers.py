@@ -54,7 +54,7 @@ def get_tokenizer(language):
     except KeyError:
         raise ValueError("Tokenizer not implemented for {!r}".format(language))
     regex = [x.format(**macros) for x in regex]
-    regex = "|".join(regex)
+    regex = u"|".join(regex)
     return RegexpTokenizer(regex,
                             flags=re.UNICODE | re.MULTILINE | re.DOTALL | re.I)
 
@@ -185,6 +185,7 @@ languages["en"] = HEADER + [
 
 languages["es"] = HEADER + [
     "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
+    u"¡¿",                                             # Extra punctuation mark
 ] + FOOTER
 
 
@@ -194,5 +195,6 @@ languages["es"] = HEADER + [
 
 languages["pt"] = HEADER + [
     "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
+    u"¡¿",                                             # Extra punctuation mark
     "\w+(-\w+)+",                                      # Compound words
 ] + FOOTER
