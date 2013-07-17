@@ -7,12 +7,19 @@ import random
 from itertools import islice
 from lxml import etree
 from lxml.etree import XMLSyntaxError
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
 from collections import defaultdict
 from nltk.data import load as nltkload
 
 from yalign.tokenizers import get_tokenizer
 from yalign.datatypes import Sentence, SentencePair
+
+
+SRT_REGEX = "\d+\n[\d:,]+?\s*-->\s*[\d:,]+?\n(.+?)(:?\n\n|$)"
+SRT_REGEX = re.compile(SRT_REGEX.replace("\n", "(?:\n|\r\n)"), re.DOTALL)
+SRT_PRE_IGNORE = re.compile("<i>|</i>")
+SRT_POST_IGNORE = set(["-"])
+
 
 MIN_LINES = 20
 MAX_LINES = 20
@@ -219,3 +226,22 @@ def read_from_url(url):
     conn.request("GET", page)
     response = conn.getresponse()
     return response.read()
+
+
+def srt_to_document(filein, lang="en"):
+    if isinstance(filein, basestring):
+        filein = open(filein)
+    text = filein.read()
+    text = UnicodeDammit(text).markup
+    d = []
+    for i, m in enumerate(SRT_REGEX.finditer(text)):
+        sent = m.group(1)
+        sent = SRT_PRE_IGNORE.sub("", sent)
+        sent = Sentence(x for x in tokenize(sent, lang)
+                        if x not in SRT_POST_IGNORE)
+        sent.position = i
+        d.append(sent)
+    N = float(len(d))
+    for sent in d:
+        sent.position = sent.position / N
+    return d

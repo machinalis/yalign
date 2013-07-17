@@ -9,7 +9,8 @@ from StringIO import StringIO
 
 from yalign.datatypes import Sentence
 from yalign.input_conversion import tokenize, text_to_document, \
-    html_to_document, parallel_corpus_to_documents, parse_tmx_file
+    html_to_document, parallel_corpus_to_documents, parse_tmx_file, \
+    srt_to_document
 
 
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -184,6 +185,8 @@ class TestHtmlToDocument(unittest.TestCase):
         self.assertGreater(len(document), 1)
         for sentence in document:
             self.assertIsInstance(sentence, Sentence)
+            self.assertGreaterEqual(sentence.position, 0.0)
+            self.assertLessEqual(sentence.position, 1.0)
             for word in sentence:
                 self.assertIsInstance(word, unicode)
 
@@ -271,6 +274,24 @@ class TestTMXDocument(unittest.TestCase):
             self.assertEqual(x, y)
         for x, y in zip(swap_b, self.document_a):
             self.assertEqual(x, y)
+
+
+class TestTMXDocument(unittest.TestCase):
+    def test_empty_string(self):
+        d = list(srt_to_document(StringIO("")))
+        self.assertEqual(d, [])
+
+    def test_ok_from_file(self):
+        filepath = os.path.join(data_path, "en.srt")
+        d = list(srt_to_document(filepath))
+        self.assertEqual(len(d), 4)
+        for sentence in d:
+            self.assertIsInstance(sentence, Sentence)
+            self.assertGreaterEqual(sentence.position, 0.0)
+            self.assertLessEqual(sentence.position, 1.0)
+            for word in sentence:
+                self.assertIsInstance(word, unicode)
+                self.assertNotIn("<i>", word)
 
 
 if __name__ == "__main__":
