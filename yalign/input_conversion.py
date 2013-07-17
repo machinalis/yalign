@@ -6,6 +6,7 @@ import codecs
 import random
 from itertools import islice
 from lxml import etree
+from lxml.etree import XMLSyntaxError
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from nltk.data import load as nltkload
@@ -185,15 +186,20 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
     inputfile.seek(0)
     document_a = []
     document_b = []
-    for tu in _iterparse(inputfile, "tu"):
-        sentences = {}
-        for tuv in tu.findall("tuv"):
-            seg = tuv.find("seg")
-            lang = _language_from_node(tuv)
-            if lang in languages:
-                sentences[lang] = tokenize(_node_to_sentence(seg), lang)
-        document_a.append(sentences[lang_a])
-        document_b.append(sentences[lang_b])
+    try:
+        for tu in _iterparse(inputfile, "tu"):
+            sentences = {}
+            for tuv in tu.findall("tuv"):
+                seg = tuv.find("seg")
+                lang = _language_from_node(tuv)
+                if lang in languages:
+                    sentences[lang] = tokenize(_node_to_sentence(seg), lang)
+            document_a.append(sentences[lang_a])
+            document_b.append(sentences[lang_b])
+    except XMLSyntaxError as error:
+    # FIXME: bug in lxml (see https://bugs.launchpad.net/lxml/+bug/1185701)
+        if error.text is not None:
+            raise
 
     return document_a, document_b
 
