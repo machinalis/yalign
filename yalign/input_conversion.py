@@ -231,10 +231,7 @@ def read_from_url(url):
     return response.read()
 
 
-def srt_to_document(filein, lang="en"):
-    if isinstance(filein, basestring):
-        filein = open(filein)
-    text = filein.read()
+def srt_to_document(text, lang="en"):
     text = UnicodeDammit(text).markup
     d = []
     for i, m in enumerate(SRT_REGEX.finditer(text)):
