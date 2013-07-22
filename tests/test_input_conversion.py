@@ -278,12 +278,13 @@ class TestTMXDocument(unittest.TestCase):
 
 class TestTMXDocument(unittest.TestCase):
     def test_empty_string(self):
-        d = list(srt_to_document(StringIO("")))
+        d = list(srt_to_document(""))
         self.assertEqual(d, [])
 
     def test_ok_from_file(self):
         filepath = os.path.join(data_path, "en.srt")
-        d = list(srt_to_document(filepath))
+        filedata = open(filepath).read()
+        d = list(srt_to_document(filedata))
         self.assertEqual(len(d), 4)
         for sentence in d:
             self.assertIsInstance(sentence, Sentence)
