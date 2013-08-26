@@ -8,15 +8,14 @@ import numpy
 from simpleai.machine_learning import kfold
 
 from yalign.svm import SVMClassifier
-from yalign.sequencealigner import SequenceAligner
 from yalign.input_conversion import generate_documents
 from yalign.train_data_generation import training_scrambling_from_documents
 from yalign.train_data_generation import training_alignments_from_documents
-
+from collections import defaultdict
 
 def evaluate(parallel_corpus, model, N=100):
     """
-    Retruns statistics for N document alignment trials.
+    Returns statistics for N document alignment trials.
     The documents are generated from the parallel corpus.
         * parallel_corpus: A file object
         * sentence_pair_score: A function that scores sentences alignment
@@ -41,7 +40,7 @@ def _stats(xs):
                 std=numpy.std(xs, 0))
 
 
-def F_score(xs, ys, beta=0.1):
+def F_score(xs, ys, beta=0.01):
     """
     Return the F score described here: http://en.wikipedia.org/wiki/F1_score
     for xs against the sample set ys.
@@ -97,3 +96,34 @@ def classifier_precision(document_a, document_b, model):
     problem = model.sentence_pair_score.problem
     score = kfold(training, problem, SVMClassifier)
     return round(score * 100, 2)
+
+
+def correlation(classifier, dataset=None):
+    """
+    Calculates the correlation of the attributes on a classifier.
+    For more information see:
+        - http://en.wikipedia.org/wiki/Correlation_and_dependence
+    """
+    if dataset is None:
+        assert hasattr(classifier, "dataset")
+        dataset = classifier.dataset
+
+    result = {}
+    answers = []
+    attributes = defaultdict(list)
+
+    for data in dataset:
+        answers.append(int(classifier.problem.target(data)))
+        for i, attr in enumerate(classifier.attributes):
+            attributes[i].append(attr(data))
+
+    answers_std = numpy.std(answers)
+    for i in xrange(len(attributes)):
+        cov = numpy.cov(attributes[i], answers)[0][1]
+        std = numpy.std(attributes[i]) * answers_std
+        if std == 0:
+            corr = numpy.nan
+        else:
+            corr = cov / std
+        result[classifier.attributes[i]] = corr
+    return result
