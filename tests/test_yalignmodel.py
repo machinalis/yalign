@@ -87,7 +87,7 @@ class TestYalignModel(unittest.TestCase):
             predicted = self.model.align_indexes(self.A, self.B)
             return F_score(predicted, self.correct_alignments)[0]
 
-        random.seed(hash("Marta Facker"))
+        random.seed(hash("12345"))
         self.model.optimize_gap_penalty_and_threshold(self.A, self.B,
                                                       self.correct_alignments)
         best_score = evaluate(self.model.document_pair_aligner.penalty,

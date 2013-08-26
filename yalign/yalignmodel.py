@@ -18,6 +18,12 @@ from yalign.train_data_generation import training_alignments_from_documents, \
                                          training_scrambling_from_documents
 
 
+OPTIMIZE_SAMPLE_SET_SIZE = 100
+OPTIMIZE_MIN_BOUND = 0
+OPTIMIZE_MAX_BOUND = .2
+RANDOM_SAMPLING_ITERATIONS = 20
+
+
 def basic_model(corpus_filepath, word_scores_filepath,
                 lang_a=None, lang_b=None, optimize=False,
                 gap_penalty=0.49, threshold=1):
@@ -42,7 +48,7 @@ def basic_model(corpus_filepath, word_scores_filepath,
     document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
     model = YalignModel(document_aligner, threshold, metadata=metadata)
     if optimize:
-        A, B, correct = training_scrambling_from_documents(A[:100], B[:100])
+        A, B, correct = training_scrambling_from_documents(A[:OPTIMIZE_SAMPLE_SET_SIZE], B[:OPTIMIZE_SAMPLE_SET_SIZE])
         model.optimize_gap_penalty_and_threshold(A, B, correct)
     return model
 
@@ -56,7 +62,7 @@ class YalignModel(object):
 
     @property
     def sentence_pair_score(self):
-        return self.document_pair_aligner.score
+        return self.document_pair_aligner.sentence_pair_score
 
     @property
     def word_pair_score(self):
@@ -100,9 +106,7 @@ class YalignModel(object):
                                              document_a, document_b,
                                              x,
                                              real_alignments)
-        min_ = self.sentence_pair_score.min_bound
-        max_ = self.sentence_pair_score.max_bound
-        _, gap_penalty = random_sampling_maximizer(F, min_, max_ / 2.0, n=10)
+        _, gap_penalty = random_sampling_maximizer(F, OPTIMIZE_MIN_BOUND, OPTIMIZE_MAX_BOUND / 2.0)
         self.document_pair_aligner.penalty = gap_penalty
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
@@ -158,7 +162,9 @@ def score_with_best_threshold(aligner, xs, ys, gap_penalty, real_alignments):
     return score
 
 
-def random_sampling_maximizer(F, min_, max_, n=20):
+def random_sampling_maximizer(F, min_, max_, n=None):
+    if n is None:
+        n = RANDOM_SAMPLING_ITERATIONS
     if n < 1:
         raise ValueError("n must be 1 or more")
     x = random.uniform(min_, max_)
