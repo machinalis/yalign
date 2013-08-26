@@ -11,8 +11,9 @@ Usage:
 import codecs
 from docopt import docopt
 
-from yalign.yalignmodel import YalignModel, basic_model
-from yalign.input_conversion import html_to_document, read_from_url
+from yalign.yalignmodel import YalignModel
+from yalign.input_conversion import html_to_document
+from yalign.utils import read_from_url
 
 
 def document_from_url(url):

@@ -32,8 +32,8 @@ def training_scrambling_from_documents(document_a, document_b):
     """
     xs = list(enumerate(document_a))
     ys = list(enumerate(document_b))
-    xs = _reorder(xs, random_range(len(xs)))
-    ys = _reorder(ys, random_range(len(ys)))
+    xs = _reorder(xs, _random_range(len(xs)))
+    ys = _reorder(ys, _random_range(len(ys)))
     alignments = _extract_alignments(xs, ys)
     A = list([x[1] for x in xs])
     B = list([y[1] for y in ys])
@@ -108,7 +108,7 @@ def _reorder(xs, indexes):
     return ys
 
 
-def random_range(N, span=10):
+def _random_range(N, span=10):
     """
     Returns a list of N integers.
     The span determines the length of the sections

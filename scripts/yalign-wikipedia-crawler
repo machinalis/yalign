@@ -10,7 +10,7 @@ Options:
 """
 from docopt import docopt
 from bs4 import BeautifulSoup
-from yalign.input_conversion import read_from_url
+from yalign.utils import read_from_url
 
 class Node(object):
 

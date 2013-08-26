@@ -6,8 +6,7 @@ from StringIO import StringIO
 from mock import patch
 from yalign.datatypes import Sentence
 from yalign.train_data_generation import *
-from yalign.train_data_generation import _aligned_samples, _misaligned_samples
-from yalign.train_data_generation import _reorder
+from yalign.train_data_generation import _aligned_samples, _misaligned_samples, _reorder, _random_range
 
 
 def swap_start_and_end(xs):
@@ -139,28 +138,28 @@ class TestRandomAlign(unittest.TestCase):
 class TestRandomRange(unittest.TestCase):
 
     def test_boundries(self):
-        self.assertEquals([], random_range(-1))
-        self.assertEquals([], random_range(0))
-        self.assertEquals([0], random_range(1))
-        self.assertEquals(5, len(random_range(5)))
+        self.assertEquals([], _random_range(-1))
+        self.assertEquals([], _random_range(0))
+        self.assertEquals([0], _random_range(1))
+        self.assertEquals(5, len(_random_range(5)))
 
     def test_span(self):
         # any span <= 1 will lead to no shuffling
-        self.assertEquals(range(5), random_range(5, span=1))
-        self.assertEquals(range(5), random_range(5, span=0))
-        self.assertEquals(range(5), random_range(5, span=-1))
-        self.assertEquals(3, len(random_range(3, span=1000)))
+        self.assertEquals(range(5), _random_range(5, span=1))
+        self.assertEquals(range(5), _random_range(5, span=0))
+        self.assertEquals(range(5), _random_range(5, span=-1))
+        self.assertEquals(3, len(_random_range(3, span=1000)))
 
     def test_some_shuffling_happens(self):
-        self.assertNotEquals(range(100), random_range(100))
+        self.assertNotEquals(range(100), _random_range(100))
 
     @patch('random.randint')
     @patch('random.shuffle')
     def test_shuffling(self, mock_shuffle, mock_randint):
         mock_randint.return_value = 2
         mock_shuffle.side_effect = swap_start_and_end
-        self.assertEquals([1, 0, 3, 2], random_range(4))
-        self.assertEquals([1, 0, 3, 2, 4], random_range(5))
+        self.assertEquals([1, 0, 3, 2], _random_range(4))
+        self.assertEquals([1, 0, 3, 2, 4], _random_range(5))
 
 
 if __name__ == "__main__":

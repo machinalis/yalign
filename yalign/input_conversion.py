@@ -143,17 +143,15 @@ def parse_training_file(training_file):
             labels = dict((x, elem.index(x)) for x in elem)
             continue
 
-        sentence_a = sentence_from_csv_elem(elem, "a", labels)
-        sentence_b = sentence_from_csv_elem(elem, "b", labels)
+        sentence_a = _sentence_from_csv_elem(elem, "a", labels)
+        sentence_b = _sentence_from_csv_elem(elem, "b", labels)
         aligned = elem[labels["aligned"]] == "1"
-        # FIXME: Consider moving this to a test
-        assert aligned is True or aligned is False
         result.append(SentencePair(sentence_a, sentence_b, aligned=aligned))
 
     return result
 
 
-def sentence_from_csv_elem(elem, label, labels):
+def _sentence_from_csv_elem(elem, label, labels):
     words = elem[labels[label]].decode("utf-8").split()
     position = float(elem[labels["pos " + label]])
     sentence = Sentence(words, position=position)
@@ -212,23 +210,6 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
             raise
 
     return document_a, document_b
-
-
-def host_and_page(url):
-    url = url.split('//')[1]
-    parts = url.split('/')
-    host = parts[0]
-    page = "/".join(parts[1:])
-    return host, '/' + page
-
-
-def read_from_url(url):
-    import httplib
-    host, page = host_and_page(url)
-    conn = httplib.HTTPConnection(host)
-    conn.request("GET", page)
-    response = conn.getresponse()
-    return response.read()
 
 
 def srt_to_document(text, lang="en"):
