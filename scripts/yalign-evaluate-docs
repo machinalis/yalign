@@ -26,8 +26,8 @@ def _documents(file_of_urls):
         try:
             url_a = next(handler)
             url_b = next(handler)
-            A = document_from_url(url_a)
-            B = document_from_url(url_b)
+            A = document_from_url(url_a.strip())
+            B = document_from_url(url_b.strip())
             yield A, B
         except StopIteration:
             break
