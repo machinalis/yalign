@@ -66,7 +66,7 @@ def text_to_document(text, language="en"):
 
 def html_to_document(html, language="en"):
     soup = BeautifulSoup(html, "html5lib")
-    text = '\n'.join([tag.get_text() for tag in soup.find_all('p')])
+    text = '\n'.join([tag.get_text() for tag in soup.body.find_all('p')])
     return text_to_document(text, language)
 
 
