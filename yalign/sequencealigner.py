@@ -4,11 +4,11 @@ from simpleai.search import SearchProblem, astar
 
 
 class SequenceAligner(object):
-    def __init__(self, weight, gap_penalty):
-        self.score = weight
+    def __init__(self, sentence_pair_score, gap_penalty):
+        self.sentence_pair_score = sentence_pair_score
         self.penalty = gap_penalty
 
-    def __call__(self, xs, ys, score=None, penalty=None):
+    def __call__(self, xs, ys, sentence_pair_score=None, penalty=None):
         """
         Returns an alignment of sequences `xs` and `ys` such that it maximizes
         the sum of weights as given by the `weight` function and the
@@ -21,22 +21,22 @@ class SequenceAligner(object):
         If `minimize` is `True` this function minimizes the sum of the weights
         instead.
         """
-        if score is None:
-            score = self.score
+        if sentence_pair_score is None:
+            sentence_pair_score = self.sentence_pair_score
         if penalty is None:
             penalty = self.penalty
-        problem = SequenceAlignmentSearchProblem(xs, ys, score, penalty)
+        problem = SequenceAlignmentSearchProblem(xs, ys, sentence_pair_score, penalty)
         node = astar(problem, graph_search=True)
         path = [action for action, node in node.path()[1:]]
         return path
 
 
 class SequenceAlignmentSearchProblem(SearchProblem):
-    def __init__(self, xs, ys, weight, gap_penalty):
+    def __init__(self, xs, ys, sentence_pair_score, gap_penalty):
         super(SequenceAlignmentSearchProblem, self).__init__((-1, -1))
         self.xs = xs
         self.ys = ys
-        self.W = weight
+        self.W = sentence_pair_score
         if gap_penalty < 0.0:
             raise ValueError("gap penalty cannot be negative")
         self.D = gap_penalty

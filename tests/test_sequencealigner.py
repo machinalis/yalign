@@ -6,7 +6,7 @@ from yalign.sequencealigner import SequenceAligner
 
 class BaseTestAlignSequences(object):
     def setUp(self):
-        self.align = SequenceAligner(self.weight, self.gap_penalty)
+        self.align = SequenceAligner(self.sentence_pair_score, self.gap_penalty)
 
     def test_EmptySequences(self):
         align = self.align([], [])
@@ -35,11 +35,11 @@ class BaseTestAlignSequences(object):
             gap = -gap
         gap = gap - 1
         self.assertRaises(ValueError, self.align, self.xs, self.ys,
-                                                               self.weight, gap)
+                                                               self.sentence_pair_score, gap)
 
     def test_no_negative_weights(self):
         def proxy(a, b):
-            w = self.weight(a, b)
+            w = self.sentence_pair_score(a, b)
             if w > 0.0:
                 w = -w
             w = w - 1
@@ -53,7 +53,7 @@ class BaseTestAlignSequences(object):
             self.assertNotIn((i, j), seen)
             seen.add((i, j))
             a, b = self.xs[i], self.ys[j]
-            return self.weight(a, b)
+            return self.sentence_pair_score(a, b)
         self.align(range(len(self.xs)), range(len(self.ys)),
                    proxy, self.gap_penalty)
 
@@ -63,7 +63,7 @@ class BaseTestAlignSequences(object):
         def proxy(i, j):
             seen.add((i, j))
             a, b = self.xs[i], self.ys[j]
-            return self.weight(a, b)
+            return self.sentence_pair_score(a, b)
         self.align(range(len(self.xs)), range(len(self.ys)),
                    proxy, self.gap_penalty)
         self.assertLess(len(seen), len(self.xs) * len(self.ys))
@@ -72,7 +72,7 @@ class BaseTestAlignSequences(object):
 class BaseTestAlignSequences_ED(BaseTestAlignSequences):
     gap_penalty = 1
 
-    def weight(self, a, b):
+    def sentence_pair_score(self, a, b):
         if a == b:
             return 0
         else:
@@ -108,7 +108,7 @@ class TestAlignSequences_WeirdAlignment(BaseTestAlignSequences, unittest.TestCas
     gap_penalty = 0.4999
     C = 1 - 0.19813635000000002
 
-    def weight(self, a, b):
+    def sentence_pair_score(self, a, b):
         if a == u"house" and b == u"casa":
             return self.C
         else:
@@ -130,7 +130,7 @@ class TestAlignSequences_Sintetic1(BaseTestAlignSequences, unittest.TestCase):
     ys = "BBB"
     gap_penalty = 1
 
-    def weight(self, a, b):
+    def sentence_pair_score(self, a, b):
         if a == "A" and b == "B":
             return 0
         return 1
@@ -149,7 +149,7 @@ class TestAlignSequences_Sintetic2(BaseTestAlignSequences, unittest.TestCase):
     ys = "aaaaaA"
     gap_penalty = 2000
 
-    def weight(self, a, b):
+    def sentence_pair_score(self, a, b):
         if a == "A" and b == "A":
             return 3999
         return 4000

@@ -8,6 +8,11 @@ from yalign.datatypes import ScoreFunction, SentencePair
 
 
 class SentencePairScore(ScoreFunction):
+
+    SCORE_MULTIPLIER = 3
+    OPTIMIZE_MIN_BOUND = 0
+    OPTIMIZE_MAX_BOUND = .2
+
     def __init__(self):
         super(SentencePairScore, self).__init__(0, 1)
         self.classifier = None
@@ -25,7 +30,7 @@ class SentencePairScore(ScoreFunction):
         self.classifier = SVMClassifier(pairs, self.problem)
         class_ = None
         for a, b in pairs:
-            sent = a = SentencePair(a, b)
+            sent = SentencePair(a, b)
             score = self.classifier.score(sent)
             if score != 0:
                 class_ = bool(self.classifier.classify(sent)[0])
@@ -50,7 +55,7 @@ class SentencePairScore(ScoreFunction):
             raise LookupError("Score not trained or loaded yet")
         a = SentencePair(a, b)
         score = self.classifier.score(a) * self.sign
-        result = logistic_function(score * 3)
+        result = logistic_function(score * SentencePairScore.SCORE_MULTIPLIER)
         assert self.min_bound <= result <= self.max_bound
         return result
 
