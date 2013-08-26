@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import gzip
 from yalign.datatypes import ScoreFunction
 
 
@@ -11,9 +12,15 @@ class WordPairScore(ScoreFunction):
         self.translations = {}
         self._parse_words_file()
 
+    def _open_file(self):
+        if self.filepath.endswith(u".gz"):
+            return gzip.open(self.filepath, 'r')
+        else:
+            return open(self.filepath, 'r')
+
     def _parse_words_file(self):
-        # FIXME: Add support for .csv.gz
-        data = csv.reader(open(self.filepath))
+        input_file = self._open_file()
+        data = csv.reader(input_file)
         for elem in data:
             word_a, word_b, prob = elem
             word_a = word_a.decode("utf-8").lower()
