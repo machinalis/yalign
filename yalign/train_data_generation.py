@@ -7,13 +7,10 @@ import random
 from datatypes import SentencePair
 
 
-def training_alignments_from_documents(document_a, document_b, mix=0.5):
+def training_alignments_from_documents(document_a, document_b):
     """
     Returns an iterable of `SentencePair`s to be used for training.
     `document_a` and `document_b` are aligned documents.
-    `mix` is the proportion of correct alignments generated.
-    For example, a ratio of 1 means all alignments generated are correct
-    alignments, a ratio of 0 means that all alignments generated are incorrect.
     """
     if not len(document_a) == len(document_b):
         raise ValueError("Documents must be the same size")
