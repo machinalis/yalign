@@ -6,7 +6,6 @@ Support Vector Machine Classifier
 
 import numpy
 from sklearn import svm
-from collections import defaultdict
 from simpleai.machine_learning import Classifier
 
 
@@ -38,10 +37,6 @@ class SVMClassifier(Classifier):
     def vectorize(self, data):
         vector = [attr(data) for attr in self.attributes]
         vector = numpy.array(vector)
-        # FIXME: This is OUR convention (values in 0..1) not in general.
-        #        Consider moving.
-        assert vector.all() >= 0
-        assert vector.all() <= 1
         return vector
 
     def __getstate__(self):
@@ -50,33 +45,3 @@ class SVMClassifier(Classifier):
             del result["dataset"]
         return result
 
-
-def correlation(classifier, dataset=None):
-    """
-    Calculates the correlation of the attributes on a classifier.
-    For more information see:
-        - http://en.wikipedia.org/wiki/Correlation_and_dependence
-    """
-    if dataset is None:
-        assert hasattr(classifier, "dataset")
-        dataset = classifier.dataset
-
-    result = {}
-    answers = []
-    attributes = defaultdict(list)
-
-    for data in dataset:
-        answers.append(int(classifier.problem.target(data)))
-        for i, attr in enumerate(classifier.attributes):
-            attributes[i].append(attr(data))
-
-    answers_std = numpy.std(answers)
-    for i in xrange(len(attributes)):
-        cov = numpy.cov(attributes[i], answers)[0][1]
-        std = numpy.std(attributes[i]) * answers_std
-        if std == 0:
-            corr = numpy.nan
-        else:
-            corr = cov / std
-        result[classifier.attributes[i]] = corr
-    return result
