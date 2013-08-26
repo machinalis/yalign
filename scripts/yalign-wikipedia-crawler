@@ -5,6 +5,7 @@ Usage:
     yalign-wikipedia-crawler [options] <url> <out>
 
 Options:
+  -l --lang=<language>                    The corresponding language [default: es]
   -n --number-of-pages=<number-of-pages>  Max number of pages to explore [default: 100]
 """
 from docopt import docopt
@@ -106,9 +107,9 @@ def test_tree_edit_dist():
 
 def to_node(tag):
     node = Node(tag.name)
-    node.children = list([to_node(child)
-                            for child in tag.findChildren(recursive=False)
-                            if child.name in ('ul', 'li')])
+    node.children = [to_node(child)
+                     for child in tag.findChildren(recursive=False)
+                     if child.name in ('ul', 'li')]
     return node
 
 def get_url(soup, language):
@@ -130,7 +131,7 @@ def next_urls(url, soup):
 
 def analyze(language, results, out, q, N=100):
     url = q.pop(0)
-    explored_urls = list([x[1] for x in results])
+    explored_urls = [x[1] for x in results]
     if url in explored_urls:
         return
     try:
@@ -164,4 +165,4 @@ if __name__ == "__main__":
     N = int(args['--number-of-pages'])
     f = open(args['<out>'], 'w')
     while len(results) < N and len(q) > 0:
-        analyze("es", results, f, q, N)
+        analyze(args["--lang"], results, f, q, N)
