@@ -4,16 +4,22 @@
 """
 Aligns two documents.
 
+Inputs:
+    model_folder: The directory where a trained model is kept.
+    document_a, document_b: The files or urls for the alignment.
+
+Output:
+    The output is written to stdout. View the -f option for supported output formats.
+
 Usage:
-    yalign-align [options] <model_folder> <document_a> <document_b> <output_filenames> ...
+    yalign-align [options] <model_folder> <document_a> <document_b>
 
 Options:
-  -s --lang-a=<language>                The language of the document A [default: en]
-  -t --lang-b=<language>                The language of the document B [default: es]
-  -o --output-format=<output-format>    The output format options are tmx and moses [default: tmx]
-                                        The moses output format requires two output files. The
-                                        first for the language of document_a and the second for
-                                        document_b.
+  -a --lang-a=<language>                The language of the document A [default: en]
+  -b --lang-b=<language>                The language of the document B [default: es]
+  -f --output-format=<output-format>    The output format options are plaintext and tmx [default: plaintext]
+                                        The plaintext output consists of alternating sentences in the target
+                                        languages.
   -h --help                             Show this screen.
 """
 
@@ -21,7 +27,7 @@ import codecs
 from docopt import docopt
 from yalign.yalignmodel import YalignModel
 from yalign.input_conversion import text_to_document, html_to_document
-from yalign.utils import write_tmx
+from yalign.utils import write_tmx, read_from_url
 
 
 def load_model(model_folder):
@@ -31,44 +37,37 @@ def load_model(model_folder):
 
 
 def read_document(filename, language):
+    if filename.startswith('http'):
+        html = read_from_url(filename)
+        return html_to_document(html, language)
     text = codecs.open(filename, encoding="utf-8").read()
     if filename.endswith(".html"):
         return html_to_document(text, language)
     return text_to_document(text, language)
 
 
-def write_moses_output(filenames, pairs):
-    file_a = open(filenames[0], 'w')
-    file_b = open(filenames[1], 'w')
+def write_plaintext(stream, pairs):
     for a, b in pairs:
-        file_a.write(a.to_text())
-        file_a.write('\n')
-        file_b.write(b.to_text())
-        file_b.write('\n')
-
-
-def check_output_filenames(output_filenames, output_format):
-    if output_format == "tmx":
-        if len(output_filenames) != 1:
-            raise ValueError('TMX output requires one output file.')
-    else:
-        if len(output_filenames) != 2:
-            raise ValueError('Moses output requires two output files.')
+        stream.write(a.to_text())
+        stream.write('\n')
+        stream.write(b.to_text())
+        stream.write('\n')
 
 if __name__ == "__main__":
+    from sys import stdout
     args = docopt(__doc__)
-    output_filenames = args['<output_filenames>']
+
     output_format = args['--output-format'].lower()
-    check_output_filenames(output_filenames, output_format)
     lang_a = args['--lang-a']
     lang_b = args['--lang-b']
     document_a = read_document(args['<document_a>'], lang_a)
     document_b = read_document(args['<document_b>'], lang_b)
     model = load_model(args['<model_folder>'])
     pairs = model.align(document_a, document_b)
+
     if output_format == "tmx":
-        write_tmx(output_filenames[0], pairs, lang_a, lang_b)
+        write_tmx(stdout, pairs, lang_a, lang_b)
     else:
-        write_moses_output(output_filenames, pairs)
+        write_plaintext(stdout, pairs)
 
 
