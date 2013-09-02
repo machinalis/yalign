@@ -1,3 +1,5 @@
+**Note: Work in progress**
+
 About
 =====
 
@@ -21,7 +23,7 @@ Firstly we need to download and unpack the english/spanish model.
 
 ::
 
-    wget yalign.machinalis.com/models/0.1/en-es.tar.gz | tar -xvzf 
+    wget http://yalign.machinalis.com/models/0.1/en-es.tar.gz | tar -xvzf 
 
 Now we can use the yalign-align script along with the english/spanish model to align two web pages.
 
@@ -34,8 +36,7 @@ Yalign is not limited to any one language pair. By creating your own models you 
 Yalign is a `Machinalis <http://www.machinalis.com>`_ project.
 You can view our other open source contributions `here <https://github.com/machinalis/>`_.
 
-The Yalign Team
-===============
+**The Yalign Team:**
 
 | Laura Alonso Alemany
 | Elías Andrawos
