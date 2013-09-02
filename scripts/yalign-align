@@ -24,6 +24,10 @@ Options:
 """
 
 import codecs
+import os
+
+import nltk
+
 from docopt import docopt
 from yalign.yalignmodel import YalignModel
 from yalign.input_conversion import text_to_document, html_to_document
@@ -60,9 +64,11 @@ if __name__ == "__main__":
     output_format = args['--output-format'].lower()
     lang_a = args['--lang-a']
     lang_b = args['--lang-b']
+    model_path = os.path.abspath(args['<model_folder>'])
+    nltk.data.path += [model_path]
     document_a = read_document(args['<document_a>'], lang_a)
     document_b = read_document(args['<document_b>'], lang_b)
-    model = load_model(args['<model_folder>'])
+    model = load_model(model_path)
     pairs = model.align(document_a, document_b)
 
     if output_format == "tmx":
