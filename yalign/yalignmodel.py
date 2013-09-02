@@ -19,8 +19,6 @@ from yalign.train_data_generation import training_alignments_from_documents, \
 
 
 OPTIMIZE_SAMPLE_SET_SIZE = 100
-OPTIMIZE_MIN_BOUND = 0
-OPTIMIZE_MAX_BOUND = .2
 RANDOM_SAMPLING_ITERATIONS = 20
 
 
@@ -106,7 +104,8 @@ class YalignModel(object):
                                              document_a, document_b,
                                              x,
                                              real_alignments)
-        _, gap_penalty = random_sampling_maximizer(F, OPTIMIZE_MIN_BOUND, OPTIMIZE_MAX_BOUND / 2.0)
+        _, gap_penalty = random_sampling_maximizer(F, self.sentence_pair_score.min_bound,
+                                                      self.sentence_pair_score.max_bound / 2.0)
         self.document_pair_aligner.penalty = gap_penalty
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
