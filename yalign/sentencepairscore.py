@@ -10,8 +10,6 @@ from yalign.datatypes import ScoreFunction, SentencePair
 class SentencePairScore(ScoreFunction):
 
     SCORE_MULTIPLIER = 3
-    OPTIMIZE_MIN_BOUND = 0
-    OPTIMIZE_MAX_BOUND = .2
 
     def __init__(self):
         super(SentencePairScore, self).__init__(0, 1)
