@@ -5,11 +5,40 @@ Yalign is a tool for extracting parallel sentences from comparable corpora.
 
 `Statistical Machine Translation <http://en.wikipedia.org/wiki/Statistical_machine_translation>`_ relies on `parallel corpora <http://en.wikipedia.org/wiki/Parallel_text>`_ (eg.. `europarl <http://www.statmt.org/europarl/>`_) for training translation models. However these corpora are limited and take time to create. Yalign is designed to automate this process by finding sentences that are close translation matches from `comparable corpora <http://www.statmt.org/survey/Topic/ComparableCorpora>`_. This opens up avenues for harvesting parallel corpora from sources like translated documents and the web.
 
-Implementation
-==============
+Installation
+============
 
-Yalign uses a sequence alignment algorithm (`Needleman-Wunch <http://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm>`_) to find an optimal alignment between the sentences in two given documents.
-Only sentences that have a high probability of being translations are included in the final alignment.
+Yalign is a available on PyPi and can installed via pip:
 
-During alignment the algorithm uses a classfier (`Support Vector Machine <http://en.wikipedia.org/wiki/Support_vector_machine>`_) to determine if two sentences are translations of each other.
-This means that the quality of the alignment is dependent not only on the input but also on the quality of the trained classifier.
+::
+
+    pip install yalign
+
+Usage
+=====
+
+Firstly we need to download and unpack the english/spanish model.
+
+::
+
+    wget yalign.machinalis.com/models/0.1/en-es.tar.gz | tar -xvzf 
+
+Now we can use the yalign-align script along with the english/spanish model to align two web pages.
+
+::
+
+    yalign-align en-es http://en.wikipedia.org/wiki/Antiparticle http://es.wikipedia.org/wiki/Antipart%C3%ADcula
+
+Yalign is not limited to any one language pair. By creating your own models you can align any two languages. For more details on how to use yalign and on yalign's implementation please `read the docs <http://quepy.readthedocs.org/>`_.
+
+Yalign is a `Machinalis <http://www.machinalis.com>`_ project.
+You can view our other open source contributions `here <https://github.com/machinalis/>`_.
+
+The Yalign Team
+===============
+
+| Laura Alonso Alemany
+| Elías Andrawos
+| Rafael Carrascosa
+| Gonzalo García Berrotarán
+| Andrew Vine
