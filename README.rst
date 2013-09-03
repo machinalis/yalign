@@ -10,11 +10,13 @@ Yalign is a tool for extracting parallel sentences from comparable corpora.
 Installation
 ============
 
-Yalign is a available on PyPi and can installed via pip:
+Yalign requires that you install `scikit-learn <http://scikit-learn.org/stable/install.html>`_.
+
+After that you can install Yalign from PyPi via pip:
 
 ::
 
-    pip install yalign
+    sudo pip install yalign
 
 Usage
 =====
