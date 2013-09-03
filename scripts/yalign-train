@@ -5,12 +5,11 @@
 Trains a model.
 
 Usage:
-    yalign-train [options] <corpus> <wordscores> <output_folder>
+    yalign-train [options] <corpus> <dictionary> <model_folder>
 
 Options:
-  -s --lang-a=<language>      The language of the document A [default: en]
-  -t --lang-b=<language>      The language of the document B [default: es]
-  -o --optimize               Optimizes the gap penalty and threshold
+  -a --lang-a=<language>      The language of the document A [default: en]
+  -b --lang-b=<language>      The language of the document B [default: es]
 """
 
 import os
@@ -23,12 +22,11 @@ if __name__ == "__main__":
     lang_a = args["--lang-a"]
     lang_b = args["--lang-b"]
     corpus = args["<corpus>"]
-    optimize = args["--optimize"]
-    wordscores = args["<wordscores>"]
+    dictionary = args["<dictionary>"]
 
-    output_folder = args["<output_folder>"]
+    output_folder = args["<model_folder>"]
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    model = basic_model(corpus, wordscores, lang_a, lang_b, optimize=optimize)
+    model = basic_model(corpus, dictionary, lang_a, lang_b, optimize=True)
     model.save(output_folder)
