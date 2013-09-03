@@ -11,10 +11,6 @@ base_path = os.path.dirname(os.path.abspath(__file__))
 long_description = open(os.path.join(base_path, 'README.rst')).read()
 requirements_path = os.path.join(base_path, "requirements.txt")
 requirements = open(requirements_path).read().splitlines()
-requirements.remove("numpy")
-# Do not require numpy because it's better to install it
-# from a system package to avoid compilation
-
 
 setup(
     name="yalign",
