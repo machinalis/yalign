@@ -25,7 +25,8 @@ Firstly we need to download and unpack the english/spanish model.
 
 ::
 
-    wget http://yalign.machinalis.com/models/0.1/en-es.tar.gz | tar -xvzf 
+    wget http://yalign.machinalis.com/models/0.1/en-es.tar.gz
+    tar -xvzf en-es.tar.gz 
 
 Now we can use the yalign-align script along with the english/spanish model to align two web pages.
 

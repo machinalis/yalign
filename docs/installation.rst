@@ -4,10 +4,22 @@ Installation
 Dependencies
 ------------
 
-Yalign requires that you install `scikit-learn <http://scikit-learn.org/stable/install.html>`_.
+Yalign has the following dependencies:
+
+| `scikit-learn <http://scikit-learn.org/stable/install.html>`_
+| `docopt <http://docopt.org/>`_
+| `simpleai <https://github.com/simpleai-team/simpleai>`_
+| `nltk <http://nltk.org/>`_
+| `beautifulsoup4 <http://www.crummy.com/software/BeautifulSoup/>`_
+| `mock <http://www.voidspace.org.uk/python/mock/>`_
+| `html5lib <https://pypi.python.org/pypi/html5lib>`_
+| `lxml <http://lxml.de/>`_ 
 
 Installing From PyPi
 --------------------
+
+Yalign requires that you first install `scikit-learn <http://scikit-learn.org/stable/install.html>`_ .
+
 ::
 
     sudo pip install yalign
