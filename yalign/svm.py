@@ -57,4 +57,6 @@ class SVMClassifier(Classifier):
         """
         if not hasattr(self.svm, '_impl'):
             self.svm._impl = 'c_svc'
+        if not hasattr(self.svm, 'impl'):
+            self.svm.impl = 'c_svc'
 
