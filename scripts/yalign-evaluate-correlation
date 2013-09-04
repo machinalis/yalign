@@ -8,7 +8,7 @@ Usage:
 """
 
 from docopt import docopt
-from yalign.svm import correlation
+from yalign.evaluation import correlation
 from yalign.wordpairscore import WordPairScore
 from yalign.sentencepairscore import SentencePairScore
 from yalign.input_conversion import parallel_corpus_to_documents
