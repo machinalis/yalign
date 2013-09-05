@@ -12,7 +12,7 @@ from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
-from yalign.input_conversion import parse_training_file, parse_tmx_file, \
+from yalign.input_conversion import parse_training_file, tmx_file_to_documents, \
     parallel_corpus_to_documents
 from yalign.train_data_generation import training_alignments_from_documents, \
                                          training_scrambling_from_documents
@@ -34,7 +34,7 @@ def basic_model(corpus_filepath, word_scores_filepath,
             raise ValueError("Cannot optmize using a csv corpus!")
     else:
         if corpus_filepath.endswith(".tmx"):
-            A, B = parse_tmx_file(corpus_filepath, lang_a, lang_b)
+            A, B = tmx_file_to_documents(corpus_filepath, lang_a, lang_b)
         else:
             A, B = parallel_corpus_to_documents(corpus_filepath)
         alignments = training_alignments_from_documents(A, B)
@@ -60,7 +60,7 @@ class YalignModel(object):
 
     @property
     def sentence_pair_score(self):
-        return self.document_pair_aligner.sentence_pair_score
+        return self.document_pair_aligner.score
 
     @property
     def word_pair_score(self):
@@ -104,8 +104,7 @@ class YalignModel(object):
                                              document_a, document_b,
                                              x,
                                              real_alignments)
-        _, gap_penalty = random_sampling_maximizer(F, self.sentence_pair_score.min_bound,
-                                                      self.sentence_pair_score.max_bound / 2.0)
+        _, gap_penalty = random_sampling_maximizer(F, 0, 0.2)
         self.document_pair_aligner.penalty = gap_penalty
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
