@@ -35,12 +35,8 @@ def training_scrambling_from_documents(document_a, document_b):
     xs = _reorder(xs, _random_range(len(xs)))
     ys = _reorder(ys, _random_range(len(ys)))
     alignments = _extract_alignments(xs, ys)
-    A = list([x[1] for x in xs])
-    B = list([y[1] for y in ys])
-    for idx, a in enumerate(A):
-        a.position = _pos(idx, A)
-    for idx, b in enumerate(B):
-        b.position = _pos(idx, B)
+    A = [x[1] for x in xs]
+    B = [y[1] for y in ys]
     return A, B, alignments
 
 
@@ -70,10 +66,6 @@ def _extract_alignments(xs, ys):
     return alignments
 
 
-def _pos(idx, xs):
-    return  float(idx) / len(xs)
-
-
 def _aligned_samples(A, B, alignments):
     for alignment in alignments:
         yield _sentence_pair(A, B, alignment)
@@ -82,7 +74,6 @@ def _aligned_samples(A, B, alignments):
 def _sentence_pair(A, B, alignment, aligned=True):
     i, j = alignment
     a, b = A[i], B[j]
-    a.position, b.position = _pos(i, A), _pos(j, B)
     return SentencePair(a, b, aligned=aligned)
 
 

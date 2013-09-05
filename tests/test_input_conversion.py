@@ -125,12 +125,6 @@ class BaseTestTextToDocument(object):
             for word in sentence:
                 self.assertIsInstance(word, unicode)
 
-    def test_has_position(self):
-        document = text_to_document(self.text, self.language)
-        self.assertGreater(len(document), 1)
-        for sentence in document:
-            self.assertTrue(hasattr(sentence, "position"))
-
 
 class TestTextToDocumentEn(BaseTestTextToDocument, unittest.TestCase):
     language = "en"
@@ -185,8 +179,6 @@ class TestHtmlToDocument(unittest.TestCase):
         self.assertGreater(len(document), 1)
         for sentence in document:
             self.assertIsInstance(sentence, Sentence)
-            self.assertGreaterEqual(sentence.position, 0.0)
-            self.assertLessEqual(sentence.position, 1.0)
             for word in sentence:
                 self.assertIsInstance(word, unicode)
 
@@ -232,11 +224,6 @@ class TestParallelCorpusDocument(unittest.TestCase):
     def test_same_length(self):
         self.assertEqual(len(self.document_a), len(self.document_b))
         self.assertEqual(len(self.document_a), 250)
-
-    def test_has_position(self):
-        for sentence_a, sentence_b in zip(self.document_a, self.document_b):
-            self.assertTrue(hasattr(sentence_a, "position"))
-            self.assertTrue(hasattr(sentence_b, "position"))
 
     def test_do_not_accept_non_tokenized_documents(self):
         _, tmpfile = tempfile.mkstemp()
@@ -288,8 +275,6 @@ class TestTMXDocument(unittest.TestCase):
         self.assertEqual(len(d), 4)
         for sentence in d:
             self.assertIsInstance(sentence, Sentence)
-            self.assertGreaterEqual(sentence.position, 0.0)
-            self.assertLessEqual(sentence.position, 1.0)
             for word in sentence:
                 self.assertIsInstance(word, unicode)
                 self.assertNotIn("<i>", word)

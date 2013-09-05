@@ -50,9 +50,9 @@ class TestYalignModel(unittest.TestCase):
         self.assertTrue(os.path.exists(metadata_path))
 
     def test_save_load_and_align(self):
-        doc1 = [Sentence([u"House"], position=0),
-                Sentence([u"asoidfhuioasgh"], position=1)]
-        doc2 = [Sentence([u"Casa"], position=0)]
+        doc1 = [Sentence([u"House"]),
+                Sentence([u"asoidfhuioasgh"])]
+        doc2 = [Sentence([u"Casa"])]
         result_before_save = self.model.align(doc1, doc2)
 
         # Save
@@ -69,9 +69,9 @@ class TestYalignModel(unittest.TestCase):
                          new_model.document_pair_aligner.penalty)
 
     def test_reasonable_alignment(self):
-        doc1 = [Sentence([u"House"], position=0),
-                Sentence([u"asoidfhuioasgh"], position=1)]
-        doc2 = [Sentence([u"Casa"], position=0)]
+        doc1 = [Sentence([u"House"]),
+                Sentence([u"asoidfhuioasgh"])]
+        doc2 = [Sentence([u"Casa"])]
         result = self.model.align(doc1, doc2)
         result = [(list(x), list(y)) for x, y in result]
         self.assertIn((list(doc1[0]), list(doc2[0])), result)

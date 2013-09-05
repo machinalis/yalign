@@ -23,22 +23,21 @@ class TestSentencePairScore(unittest.TestCase):
         self.score.train(self.alignments, word_pair_score)
 
     def test_generates_numbers(self):
-        a = Sentence(u"house you".split(), position=0.5)
-        b = Sentence(u"casa usted".split(), position=0.5)
+        a = Sentence(u"house you".split())
+        b = Sentence(u"casa usted".split())
         x = self.score(a, b)
         self.assertIsInstance(x, (int, float))
-        a = Sentence(u"Valar Morghulis".split(), position=0.0)
-        b = Sentence(u"Dracarys".split(), position=1.0)
+        a = Sentence(u"Valar Morghulis".split())
+        b = Sentence(u"Dracarys".split())
         x = self.score(a, b)
         self.assertIsInstance(x, (int, float))
 
     def test_score_order(self):
-        a = Sentence(u"Call History .".split(), position=0.0)
-        b = Sentence(u"Historial de llamadas .".split(), position=0.0)
+        a = Sentence(u"Call History .".split())
+        b = Sentence(u"Historial de llamadas .".split())
         score1 = self.score(a, b)
-        a = Sentence(u"Replace the cover .".split(), position=0.0)
-        b = Sentence(u"Vuelva a ingresar un nuevo código de bloqueo .".split(),
-                     position=0.26)
+        a = Sentence(u"Replace the cover .".split())
+        b = Sentence(u"Vuelva a ingresar un nuevo código de bloqueo .".split())
         score2 = self.score(a, b)
         self.assertLess(score1, score2)
 
@@ -49,12 +48,12 @@ class TestSentencePairScore(unittest.TestCase):
             self.assertLessEqual(score, self.score.max_bound)
 
     def test_linear_word_count_is_better_than_all_mismatchs(self):
-        a = Sentence(u"house µa µb µc µd".split(), position=0.0)
-        b = Sentence(u"casa  µ1 µ2 µ3 µ4".split(), position=0.0)
+        a = Sentence(u"house µa µb µc µd".split())
+        b = Sentence(u"casa  µ1 µ2 µ3 µ4".split())
         s1 = self.score.problem.linear_word_count(SentencePair(a, b))
 
-        c = Sentence(u"µx µa µb µc µd".split(), position=0.0)
-        d = Sentence(u"µ5 µ1 µ2 µ3 µ4".split(), position=0.0)
+        c = Sentence(u"µx µa µb µc µd".split())
+        d = Sentence(u"µ5 µ1 µ2 µ3 µ4".split())
         s2 = self.score.problem.linear_word_count(SentencePair(c, d))
 
         self.assertGreater(s1, s2)

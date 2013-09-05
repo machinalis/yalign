@@ -53,15 +53,10 @@ def tokenize(text, language="en"):
 
 
 def text_to_document(text, language="en"):
-    document = []
     sentence_splitter = _sentence_splitters[language]
     sentences = sentence_splitter.tokenize(text)
-    total_sentences = float(len(sentences))
-    for i, sentence_text in enumerate(sentences):
-        sentence = tokenize(sentence_text, language)
-        sentence.position = i / total_sentences
-        document.append(sentence)
-    return document
+    return [tokenize(text, language)
+            for text in sentences]
 
 
 def html_to_document(html, language="en"):
@@ -115,8 +110,7 @@ def _next_documents(parallel_corpus, N=None):
 
 def _document(lines):
     doc = list([Sentence(line.split()) for line in lines])
-    for idx, sentence in enumerate(doc):
-        sentence.position = float(idx) / len(doc)
+    for sentence in doc:
         sentence.check_is_tokenized()
     return doc
 
@@ -153,8 +147,7 @@ def parse_training_file(training_file):
 
 def _sentence_from_csv_elem(elem, label, labels):
     words = elem[labels[label]].decode("utf-8").split()
-    position = float(elem[labels["pos " + label]])
-    sentence = Sentence(words, position=position)
+    sentence = Sentence(words)
     sentence.check_is_tokenized()
     return sentence
 
@@ -215,14 +208,10 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
 def srt_to_document(text, lang="en"):
     text = UnicodeDammit(text).markup
     d = []
-    for i, m in enumerate(SRT_REGEX.finditer(text)):
+    for m in SRT_REGEX.finditer(text):
         sent = m.group(1)
         sent = SRT_PRE_IGNORE.sub("", sent)
         sent = Sentence(x for x in tokenize(sent, lang)
                         if x not in SRT_POST_IGNORE)
-        sent.position = i
         d.append(sent)
-    N = float(len(d))
-    for sent in d:
-        sent.position = sent.position / N
     return d
