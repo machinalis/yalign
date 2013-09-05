@@ -47,14 +47,14 @@ class TestSentencePairScore(unittest.TestCase):
             self.assertGreaterEqual(score, self.score.min_bound)
             self.assertLessEqual(score, self.score.max_bound)
 
-    def test_linear_word_count_is_better_than_all_mismatchs(self):
+    def test_number_of_word_pair_scores_better_than_all_mismatchs(self):
         a = Sentence(u"house µa µb µc µd".split())
         b = Sentence(u"casa  µ1 µ2 µ3 µ4".split())
-        s1 = self.score.problem.linear_word_count(SentencePair(a, b))
+        s1 = self.score.problem.number_of_word_pair_scores(SentencePair(a, b))
 
         c = Sentence(u"µx µa µb µc µd".split())
         d = Sentence(u"µ5 µ1 µ2 µ3 µ4".split())
-        s2 = self.score.problem.linear_word_count(SentencePair(c, d))
+        s2 = self.score.problem.number_of_word_pair_scores(SentencePair(c, d))
 
         self.assertGreater(s1, s2)
 

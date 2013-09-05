@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+Module of some basic data types.
+"""
+
 
 def _is_tokenized(word):
     """
@@ -13,6 +17,9 @@ def _is_tokenized(word):
 
 
 class Sentence(list):
+    """
+    Represents a sentence. Really is just a list of words.
+    """
     def __init__(self, iterable=None):
         if iterable is not None:
             super(Sentence, self).__init__(iterable)
@@ -30,6 +37,10 @@ class Sentence(list):
 
 
 class SentencePair(list):
+    """
+    An association of two sentences with one attribute
+    to indicate if they are considered aligned.
+    """
     def __init__(self, sentence_a, sentence_b, aligned=None):
         super(SentencePair, self).__init__([sentence_a, sentence_b])
         self.a = sentence_a
@@ -38,6 +49,10 @@ class SentencePair(list):
 
 
 class ScoreFunction(object):
+    """
+    Abstract Base class for callable objects that provide a real value score.
+    The min_bound and max_bound are used to assert the score range.
+    """
     def __init__(self, min_bound, max_bound):
         self.min_bound = min_bound
         self.max_bound = max_bound

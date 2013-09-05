@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
-
+"""
+Module for scoring pairs of words.
+"""
 import csv
 import gzip
 from yalign.datatypes import ScoreFunction
 
 
 class WordPairScore(ScoreFunction):
+    """
+    Provides the probability that two words are
+    translations of each other.
+    """
     def __init__(self, dictionary_file):
+        """
+        Requires a csv file where each line contains:
+        {word_a},{word_b},{translation probability of a to b}
+        """
         super(WordPairScore, self).__init__(0, 1)
         self.filepath = dictionary_file
         self.translations = {}
@@ -30,6 +40,10 @@ class WordPairScore(ScoreFunction):
             self.translations[word_a][word_b] = float(prob)
 
     def __call__(self, sentence_a, sentence_b):
+        """
+        Returns a list of scores for words in Sentence `sentence_a`
+        that match Sentence `sentence_b`.
+        """
         result = []
         values = {}
         set_a = set()

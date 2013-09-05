@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
+"""
+Module for code related to scoring sentence pairs.
+"""
 
 import math
 from simpleai.machine_learning import ClassificationProblem, is_attribute
 
 from yalign.svm import SVMClassifier
 from yalign.datatypes import ScoreFunction, SentencePair
+from yalign.utils import CacheOfSizeOne
 
 
 class SentencePairScore(ScoreFunction):
-
+    """
+    This class provides a score of how close two sentences are to being translations
+    of each other.
+    """
     SCORE_MULTIPLIER = 3
 
     def __init__(self):
@@ -39,23 +46,22 @@ class SentencePairScore(ScoreFunction):
         if class_ is None:
             raise ValueError("Cannot infer sign with this data")
 
-    def load(self, filepath):
-        self.classifier = SVMClassifier.load(filepath)
-
-    def save(self, filepath):
-        self.classifier.save(filepath)
-
     def __call__(self, a, b):
         """
-        Returns the score of a sentence.
+        Returns a score representing how good a
+        translation sentence b is of sentence a.
         """
         if self.classifier is None:
             raise LookupError("Score not trained or loaded yet")
         a = SentencePair(a, b)
         score = self.classifier.score(a) * self.sign
-        result = logistic_function(score * SentencePairScore.SCORE_MULTIPLIER)
+        result = self.logistic_function(score * SentencePairScore.SCORE_MULTIPLIER)
         assert self.min_bound <= result <= self.max_bound
         return result
+
+    def logistic_function(self, x):
+        """ See: http://en.wikipedia.org/wiki/Logistic_function"""
+        return 1 / (1 + math.e ** (-x))
 
     @property
     def word_pair_score(self):
@@ -63,57 +69,57 @@ class SentencePairScore(ScoreFunction):
 
 
 class SentencePairScoreProblem(ClassificationProblem):
+    """
+    Provides the classifier attributes.
+    """
     def __init__(self, word_pair_score):
+        """
+        Some attributes need a WordPairScore.
+        """
         super(SentencePairScoreProblem, self).__init__()
         self.word_pair_score = CacheOfSizeOne(word_pair_score)
 
     @is_attribute
-    def linear_word_match(self, alignment):
-        total = sum(self.word_pair_score(alignment.a, alignment.b))
-        return total / float(max(len(alignment.a), len(alignment.b)))
+    def sum_of_word_pair_scores(self, sentence_pair):
+        """
+        The sum of the word pair scores divided by
+        the word count of the longest sentence.
+        """
+        scores = self.word_pair_score(sentence_pair.a, sentence_pair.b)
+        return sum(scores) / self._max_word_count(sentence_pair)
 
     @is_attribute
-    def linear_word_count(self, alignment):
-        total = len(self.word_pair_score(alignment.a, alignment.b))
-        return total / float(max(len(alignment.a), len(alignment.b)))
+    def number_of_word_pair_scores(self, sentence_pair):
+        """
+        The number of the word pair scores divided by
+        the number of words of the longest sentence.
+        """
+        scores = self.word_pair_score(sentence_pair.a, sentence_pair.b)
+        return len(scores) / self._max_word_count(sentence_pair)
 
     @is_attribute
-    def character_count_ratio(self, alignment):
-        length_1 = len([c for word in alignment.a for c in word])
-        length_2 = len([c for word in alignment.b for c in word])
-        return ratio(length_1, length_2)
+    def ratio_of_character_count(self, sentence_pair):
+        """
+        The ratio of the sentence with the least characters
+        over the sentence with the most characters.
+        """
+        char_count_a = self._number_of_characters(sentence_pair.a)
+        char_count_b = self._number_of_characters(sentence_pair.b)
+        return self._ratio(char_count_a, char_count_b)
 
-    def target(self, alignment):
-        return alignment.aligned
+    def target(self, sentence_pair):
+        """ Returns if these sentences are translations of each other """
+        return sentence_pair.aligned
 
+    def _max_word_count(self, sentence_pair):
+        word_count_a = len(sentence_pair.a)
+        word_count_b = len(sentence_pair.b)
+        return float(max(word_count_a, word_count_b))
 
-def ratio(a, b):
-    if max(a, b) == 0:
-        return 0.0
-    return min(a, b) / float(max(a, b))
+    def _number_of_characters(self, sentence):
+        return len([c for word in sentence for c in word])
 
-
-def logistic_function(x):
-    """
-    See: http://en.wikipedia.org/wiki/Logistic_function
-    """
-    return 1 / (1 + math.e ** (-x))
-
-
-class CacheOfSizeOne(object):
-    f = None
-
-    def __init__(self, f):
-        self.f = f
-        self.args = None
-        self.kwargs = None
-
-    def __call__(self, *args, **kwargs):
-        if args != self.args or kwargs != self.kwargs:
-            self.result = self.f(*args, **kwargs)
-            self.args = args
-            self.kwargs = kwargs
-        return self.result
-
-    def __getattr__(self, name):
-        return getattr(self.f, name)
+    def _ratio(self, a, b):
+        if max(a, b) == 0:
+            return 0.0
+        return min(a, b) / float(max(a, b))

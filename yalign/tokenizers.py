@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Module providing tokenizers for various languages.
+"""
 
 from nltk.tokenize import RegexpTokenizer  # FIXME: It's an overkill
 import re
@@ -49,6 +52,10 @@ languages = {}
 
 
 def get_tokenizer(language):
+    """
+    Get a tokenizer for a two character language code.
+    Throws a ValueError if no tokenizer is available.
+    """
     try:
         regex = languages[language]
     except KeyError:

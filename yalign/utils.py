@@ -2,11 +2,14 @@
 Module for miscellaneous functions.
 """
 import random
+from collections import defaultdict
 from string import letters
 from lxml.builder import ElementMaker
 from lxml import etree
 
+
 def host_and_page(url):
+    """ Splits a `url` into the hostname and the rest of the url. """
     url = url.split('//')[1]
     parts = url.split('/')
     host = parts[0]
@@ -15,6 +18,7 @@ def host_and_page(url):
 
 
 def read_from_url(url):
+    """ GET this `url` and read the response. """
     import httplib
     host, page = host_and_page(url)
     conn = httplib.HTTPConnection(host)
@@ -24,7 +28,7 @@ def read_from_url(url):
 
 
 def write_tmx(stream, sentence_pairs, language_a, language_b):
-
+    """ Writes the SentencePair's out in tmx format, """
     maker = ElementMaker()
     token = "".join(random.sample(letters * 3, 50))
     token_a = "".join(random.sample(letters * 3, 50))
@@ -53,3 +57,31 @@ def write_tmx(stream, sentence_pairs, language_a, language_b):
             tu_text = tu_text.replace(token_b, sentence_b.to_text())
         stream.write(tu_text)
     stream.write("</body>\n</tmx>")
+
+
+class CacheOfSizeOne(object):
+    """ Function wrapper that provides caching. """
+    f = None
+
+    def __init__(self, f):
+        self.f = f
+        self.args = None
+        self.kwargs = None
+
+    def __call__(self, *args, **kwargs):
+        if args != self.args or kwargs != self.kwargs:
+            self.result = self.f(*args, **kwargs)
+            self.args = args
+            self.kwargs = kwargs
+        return self.result
+
+    def __getattr__(self, name):
+        return getattr(self.f, name)
+
+
+class Memoized(defaultdict):
+
+    def __missing__(self, key):
+        x = self.default_factory(key)
+        self[key] = x
+        return x

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Module to evaluate the accuracy.
+Module for the evaluation of sequence alignment accuracy.
 """
 
 import numpy
@@ -13,14 +13,15 @@ from yalign.train_data_generation import training_scrambling_from_documents
 from yalign.train_data_generation import training_alignments_from_documents
 from collections import defaultdict
 
+
 def evaluate(parallel_corpus, model, N=100):
     """
     Returns statistics for N document alignment trials.
     The documents are generated from the parallel corpus.
-        * parallel_corpus: A file object
-        * sentence_pair_score: A function that scores sentences alignment
-        * gap_penalty, threshold: parameters for squence alignments
-        * N: Number of trials
+
+    - `parallel_corpus`: A file object
+    - `model`: A YalignModel
+    - `N`: Number of trials
     """
 
     results = []
@@ -42,10 +43,10 @@ def _stats(xs):
 
 def F_score(xs, ys, beta=0.01):
     """
-    Return the F score described here: http://en.wikipedia.org/wiki/F1_score
-    for xs against the sample set ys.
+    Returns the F score described here: http://en.wikipedia.org/wiki/F1_score
+    for list `xs` against to the list `ys`.
 
-    Change beta to give more weight to precision.
+    Make beta smaller to give more weight to the precision.
     """
     p = precision(xs, ys)
     r = recall(xs, ys)
@@ -57,22 +58,22 @@ def F_score(xs, ys, beta=0.01):
 
 
 def precision(xs, ys):
-    """Precision of xs for sample set ys."""
+    """Precision of list `xs` to list `ys`."""
     return len([x for x in xs if x in ys]) / float(len(xs)) if xs else 0.
 
 
 def recall(xs, ys):
-    """Recall of xs for sample set ys."""
+    """Recall of list `xs` to list `ys`."""
     return len([x for x in xs if x in ys]) / float(len(ys)) if ys else 0.
 
 
 def alignment_percentage(document_a, document_b, model):
     """
     Returns the percentage of alignments of `document_a` and `document_b`
-    using the model.
-    `document_a` and `document_b` are yalign documents.
-    `model` can be a YalignModel or a path to a yalign model.
-    The return value it's a float between 0.0 and 100.0
+    using the model provided.
+
+    - `document_a` and `document_b` are two lists of Sentences to align.
+    - `model` can be a YalignModel or a path to a yalign model.
     """
 
     if len(document_a) == 0 and len(document_b) == 0:
@@ -87,7 +88,7 @@ def alignment_percentage(document_a, document_b, model):
 def classifier_precision(document_a, document_b, model):
     """
     Runs a ten-fold validation on the classifier and returns
-    a value between 0 and 100 meaning how good it is.
+    a value between 0 and 100. Higher is better.
     """
     if len(document_a) == 0 and len(document_b) == 0:
         return 0.0
@@ -100,7 +101,8 @@ def classifier_precision(document_a, document_b, model):
 
 def correlation(classifier, dataset=None):
     """
-    Calculates the correlation of the attributes on a classifier.
+    Calculates the correlation of the attributes of a classifier.
+
     For more information see:
         - http://en.wikipedia.org/wiki/Correlation_and_dependence
     """

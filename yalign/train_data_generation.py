@@ -9,8 +9,9 @@ from datatypes import SentencePair
 
 def training_alignments_from_documents(document_a, document_b):
     """
-    Returns an iterable of `SentencePair`s to be used for training.
-    `document_a` and `document_b` are aligned documents.
+    Returns an iterable of SentencePairs to be used for training.
+    The inputs `document_a` and `document_b` are both lists of
+    Sentences made from a parallel corpus.
     """
     if not len(document_a) == len(document_b):
         raise ValueError("Documents must be the same size")
@@ -24,11 +25,11 @@ def training_alignments_from_documents(document_a, document_b):
 
 def training_scrambling_from_documents(document_a, document_b):
     """
-    Returns a tuple `(scrambled_a, scrambled_b, correct_alignments)`
-    `scrambled_a` is a scrambled version of document_a.
-    `scrambled_b` is a scrambled version of document_b.
-    `correct_alignments` are all the correct sentence alignments that exist
-    between `scrambled_a` and `scrambled_b`.
+    Returns a tuple `(scrambled_a, scrambled_b, correct_alignments)` where:
+        * `scrambled_a` is a scrambled version of document_a.
+        * `scrambled_b` is a scrambled version of document_b.
+        * `correct_alignments` are all the correct sentence alignments that exist
+           between `scrambled_a` and `scrambled_b`.
     """
     xs = list(enumerate(document_a))
     ys = list(enumerate(document_b))
@@ -67,26 +68,19 @@ def _extract_alignments(xs, ys):
 
 
 def _aligned_samples(A, B, alignments):
-    for alignment in alignments:
-        yield _sentence_pair(A, B, alignment)
-
-
-def _sentence_pair(A, B, alignment, aligned=True):
-    i, j = alignment
-    a, b = A[i], B[j]
-    return SentencePair(a, b, aligned=aligned)
+    for i, j in alignments:
+        yield SentencePair(A[i], B[j], aligned=True)
 
 
 def _misaligned_samples(A, B, alignments):
     misalignments = []
-    n = len(alignments)
-    if n > 1:
-        while len(misalignments) < n:
+    if len(alignments) > 1:
+        while len(misalignments) < len(alignments):
             i = random.randint(0, len(A) - 1)
             j = random.randint(0, len(B) - 1)
             if not (i, j) in alignments and not (i, j) in misalignments:
                 misalignments.append((i, j))
-                yield _sentence_pair(A, B, (i, j), aligned=False)
+                yield SentencePair(A[i], B[j], aligned=False)
 
 
 def _reorder(xs, indexes):

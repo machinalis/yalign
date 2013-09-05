@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+A module of helper functions for dealing with various inputs.
+"""
 
 import re
 import csv
@@ -8,12 +11,11 @@ from itertools import islice
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 from bs4 import BeautifulSoup, UnicodeDammit
-from collections import defaultdict
 from nltk.data import load as nltkload
 
 from yalign.tokenizers import get_tokenizer
 from yalign.datatypes import Sentence, SentencePair
-
+from yalign.utils import Memoized
 
 SRT_REGEX = "\d+\n[\d:,]+?\s*-->\s*[\d:,]+?\n(.+?)(:?\n\n|$)"
 SRT_REGEX = re.compile(SRT_REGEX.replace("\n", "(?:\n|\r\n)"), re.DOTALL)
@@ -26,19 +28,13 @@ MAX_LINES = 20
 XMLNS = "{http://www.w3.org/XML/1998/namespace}"
 STRIP_TAGS_REGEXP = re.compile("(>)(.*)(<)", re.DOTALL)
 
-
-class Memoized(defaultdict):
-    def __missing__(self, key):
-        x = self.default_factory(key)
-        self[key] = x
-        return x
-
-
 _punkt = {
     "en": "tokenizers/punkt/english.pickle",
     "es": "tokenizers/punkt/spanish.pickle",
     "pt": "tokenizers/punkt/portuguese.pickle"
 }
+
+
 _tokenizers = Memoized(lambda lang: get_tokenizer(lang))
 _sentence_splitters = Memoized(lambda lang: nltkload(_punkt[lang]))
 
@@ -53,13 +49,15 @@ def tokenize(text, language="en"):
 
 
 def text_to_document(text, language="en"):
-    sentence_splitter = _sentence_splitters[language]
-    sentences = sentence_splitter.tokenize(text)
-    return [tokenize(text, language)
-            for text in sentences]
+    """ Returns string text as list of Sentences """
+    splitter = _sentence_splitters[language]
+    utext = unicode(text, 'utf-8') if isinstance(text, str) else text
+    sentences = splitter.tokenize(utext)
+    return [tokenize(text, language) for text in sentences]
 
 
 def html_to_document(html, language="en"):
+    """ Returns html text as list of Sentences """
     soup = BeautifulSoup(html, "html5lib")
     text = '\n'.join([tag.get_text() for tag in soup.body.find_all('p')])
     return text_to_document(text, language)
@@ -127,7 +125,7 @@ def _split_parallel_corpus(parallel_corpus, N=None):
 
 def parse_training_file(training_file):
     """
-    Parses the file and yields SentencePair objects.
+    Reads SentencePairs from a training file.
     """
     labels = None
     data = csv.reader(open(training_file))
@@ -176,7 +174,11 @@ def _iterparse(input_file, tag=None, events=("end",),
             del node.getparent()[0]
 
 
-def parse_tmx_file(filepath, lang_a=None, lang_b=None):
+def tmx_file_to_documents(filepath, lang_a=None, lang_b=None):
+    """
+    Converts a tmx file into two lists of Sentences.
+    The first for language lang_a and the second for language lang_b.
+    """
     inputfile = open(filepath)
 
     tu = _iterparse(inputfile, "tu").next()
@@ -206,6 +208,7 @@ def parse_tmx_file(filepath, lang_a=None, lang_b=None):
 
 
 def srt_to_document(text, lang="en"):
+    """ Convert a string of srt into a list of Sentences. """
     text = UnicodeDammit(text).markup
     d = []
     for m in SRT_REGEX.finditer(text):

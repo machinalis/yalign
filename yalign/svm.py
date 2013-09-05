@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Support Vector Machine Classifier
+Module for code dealing with the classifier.
 """
 
 import numpy
@@ -11,12 +11,19 @@ from simpleai.machine_learning import Classifier
 
 
 class SVMClassifier(Classifier):
+    """
+    A Support Vector Machine classifier to classify if a sentence is a
+    translation of another sentence.
+    """
 
     def learn(self):
+        """
+        Train the classifier.
+        """
         vectors = []
         answers = []
         for data in self.dataset:
-            vector = self.vectorize(data)
+            vector = self._vectorize(data)
             vectors.append(vector)
             answer = self.problem.target(data)
             answers.append(answer)
@@ -26,20 +33,24 @@ class SVMClassifier(Classifier):
         self._SVC_hack()
         self.svm.fit(vectors, answers)
 
-    def classify(self, data):
+    def classify(self, sentence_pair):
+        """
+        Classify if this SentencePair `sentence_pair` has sentences
+        that are translations of each other.
+        """
         self._SVC_hack()
-        vector = self.vectorize(data)
+        vector = self._vectorize(sentence_pair)
         return self.svm.predict(vector)[0], 1
 
     def score(self, data):
         """
-        True class is positive, False class is negative.
+        The score is positive for an alignment.
         """
         self._SVC_hack()
-        vector = self.vectorize(data)
+        vector = self._vectorize(data)
         return float(self.svm.decision_function(vector))
 
-    def vectorize(self, data):
+    def _vectorize(self, data):
         vector = [attr(data) for attr in self.attributes]
         vector = numpy.array(vector)
         return vector
@@ -52,8 +63,8 @@ class SVMClassifier(Classifier):
 
     def _SVC_hack(self):
         """
-        This is a dirty hack to deal with SVC's that were pickled using version 0.13.1
-        But the user is now on a later version os scikit-learn where _impl is expected.
+        This is a dirty hack to deal with SVC's that so that a pickled classifier
+        works across scikit-learn versions.
         """
         if not hasattr(self.svm, '_impl'):
             self.svm._impl = 'c_svc'

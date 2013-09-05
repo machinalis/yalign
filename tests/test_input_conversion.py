@@ -9,7 +9,7 @@ from StringIO import StringIO
 
 from yalign.datatypes import Sentence
 from yalign.input_conversion import tokenize, text_to_document, \
-    html_to_document, parallel_corpus_to_documents, parse_tmx_file, \
+    html_to_document, parallel_corpus_to_documents, tmx_file_to_documents, \
     srt_to_document
 
 
@@ -241,7 +241,7 @@ class TestParallelCorpusDocument(unittest.TestCase):
 class TestTMXDocument(unittest.TestCase):
     def setUp(self):
         document_path = os.path.join(data_path, "corpus-en-es.tmx")
-        self.document_a, self.document_b = parse_tmx_file(document_path,
+        self.document_a, self.document_b = tmx_file_to_documents(document_path,
                                                           "en", "es")
 
     def test_correct_length(self):
@@ -255,7 +255,7 @@ class TestTMXDocument(unittest.TestCase):
 
     def test_swap_languages(self):
         document_path = os.path.join(data_path, "corpus-en-es.tmx")
-        swap_a, swap_b = parse_tmx_file(document_path, "es", "en")
+        swap_a, swap_b = tmx_file_to_documents(document_path, "es", "en")
 
         for x, y in zip(swap_a, self.document_b):
             self.assertEqual(x, y)
