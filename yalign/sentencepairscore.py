@@ -68,12 +68,6 @@ class SentencePairScoreProblem(ClassificationProblem):
         self.word_pair_score = CacheOfSizeOne(word_pair_score)
 
     @is_attribute
-    def word_length_difference(self, alignment):
-        a = len(alignment.a)
-        b = len(alignment.b)
-        return ratio(a, b)
-
-    @is_attribute
     def linear_word_match(self, alignment):
         total = sum(self.word_pair_score(alignment.a, alignment.b))
         return total / float(max(len(alignment.a), len(alignment.b)))
@@ -82,6 +76,12 @@ class SentencePairScoreProblem(ClassificationProblem):
     def linear_word_count(self, alignment):
         total = len(self.word_pair_score(alignment.a, alignment.b))
         return total / float(max(len(alignment.a), len(alignment.b)))
+
+    @is_attribute
+    def character_count_ratio(self, alignment):
+        length_1 = len([c for word in alignment.a for c in word])
+        length_2 = len([c for word in alignment.b for c in word])
+        return ratio(length_1, length_2)
 
     def target(self, alignment):
         return alignment.aligned
