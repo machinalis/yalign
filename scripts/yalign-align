@@ -34,12 +34,6 @@ from yalign.input_conversion import text_to_document, html_to_document
 from yalign.utils import write_tmx, read_from_url
 
 
-def load_model(model_folder):
-    model = YalignModel()
-    model.load(model_folder)
-    return model
-
-
 def read_document(filename, language):
     if filename.startswith('http'):
         html = read_from_url(filename)
@@ -68,7 +62,7 @@ if __name__ == "__main__":
     nltk.data.path += [model_path]
     document_a = read_document(args['<document_a>'], lang_a)
     document_b = read_document(args['<document_b>'], lang_b)
-    model = load_model(model_path)
+    model = YalignModel.load(model_path)
     pairs = model.align(document_a, document_b)
 
     if output_format == "tmx":

@@ -28,11 +28,10 @@ if __name__ == "__main__":
     parallel_corpus = args["<parallel-corpus>"]
     model_folder = args["<model_folder>"]
     log = open(args["<log>"], "a")
-    model = YalignModel()
-    model.load(model_folder)
+    model = YalignModel.load(model_folder)
     N = int(args['--number-of-tries'])
     stats = evaluate(parallel_corpus, model, N)
-    message =  str(datetime.datetime.now())+': '
+    message = str(datetime.datetime.now())+': '
     message += args['--message'] or ''
     log.write(message+'\n')
     print_stats(stats, log)

@@ -58,6 +58,17 @@ class YalignModel(object):
         self.threshold = threshold
         self.metadata = MetadataHelper(metadata)
 
+    @classmethod
+    def load(cls, model_directory):
+        model = cls()
+        metadata = os.path.join(model_directory, "metadata.json")
+        aligner = os.path.join(model_directory, "aligner.pickle")
+        model.metadata.update(json.load(open(metadata)))
+        model.document_pair_aligner = pickle.load(open(aligner))
+        model.document_pair_aligner.penalty = model.metadata.penalty
+        model.threshold = model.metadata.threshold
+        return model
+
     @property
     def sentence_pair_score(self):
         return self.document_pair_aligner.score
@@ -80,14 +91,6 @@ class YalignModel(object):
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
         return apply_threshold(alignments, self.threshold)
-
-    def load(self, model_directory, load_data=True):
-        metadata = os.path.join(model_directory, "metadata.json")
-        aligner = os.path.join(model_directory, "aligner.pickle")
-        self.metadata.update(json.load(open(metadata)))
-        self.document_pair_aligner = pickle.load(open(aligner))
-        self.document_pair_aligner.penalty = self.metadata.penalty
-        self.threshold = self.metadata.threshold
 
     def save(self, model_directory):
         metadata = os.path.join(model_directory, "metadata.json")

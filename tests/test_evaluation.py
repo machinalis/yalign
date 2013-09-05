@@ -102,8 +102,7 @@ class BaseTestPercentage(object):
         output = outputfh.read()
 
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
-        model = YalignModel()
-        model.load(tmpdir)
+        model = YalignModel.load(tmpdir)
         value = self.alignment_function(A, B, model)
 
         self.assertIn("{}%".format(value), output)

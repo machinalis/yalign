@@ -9,8 +9,7 @@ Examples of how to use the yalign API:
 
     from yalign import YalignModel
 
-    model = YalignModel()
-    model.load('en-es')
+    model = YalignModel.load('en-es')
 
     # Align text
 

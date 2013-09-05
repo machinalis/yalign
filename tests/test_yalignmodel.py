@@ -60,8 +60,7 @@ class TestYalignModel(unittest.TestCase):
         self.model.save(tmp_folder)
 
         # Load
-        new_model = YalignModel()
-        new_model.load(tmp_folder)
+        new_model = YalignModel.load(tmp_folder)
         result_after_load = new_model.align(doc1, doc2)
         self.assertEqual(result_before_save, result_after_load)
         self.assertEqual(self.model.threshold, new_model.threshold)

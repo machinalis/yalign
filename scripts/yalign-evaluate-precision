@@ -18,7 +18,6 @@ if __name__ == "__main__":
     parallel_corpus = args["<parallel-corpus>"]
     A, B = parallel_corpus_to_documents(parallel_corpus)
     modelpath = args["<model>"]
-    model = YalignModel()
-    model.load(modelpath)
+    model = YalignModel.load(modelpath)
     p = classifier_precision(A, B, model)
     print "Classifier precision: {}%".format(p)
