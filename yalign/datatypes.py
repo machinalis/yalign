@@ -7,18 +7,13 @@ def _is_tokenized(word):
     Note: if this functions returns True doesn't mean is really tokenized, but
     if returns False you know it's not tokenized propperly.
     """
-
     # FIXME: add harder checks
     return not ((word.endswith(".") or word.endswith(",")) and
                 word[:-1].isalpha())
 
 
 class Sentence(list):
-    def __init__(self, iterable=None, position=None):
-        if position is not None:
-            if not(0 <= position <= 1):
-                raise ValueError("Position must be between 0 and 1")
-            self.position = position
+    def __init__(self, iterable=None):
         if iterable is not None:
             super(Sentence, self).__init__(iterable)
         else:
