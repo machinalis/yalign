@@ -21,20 +21,20 @@ After that you can install Yalign from PyPi via pip:
 Usage
 =====
 
-Firstly we need to download and unpack the english/spanish model.
+Firstly we need to download and unpack the english to spanish model.
 
 ::
 
     wget http://yalign.machinalis.com/models/0.1/en-es.tar.gz
     tar -xvzf en-es.tar.gz 
 
-Now we can use the yalign-align script along with the english/spanish model to align two web pages.
+Now we can use the **yalign-align** script along with the english to spanish model to align two web pages.
 
 ::
 
     yalign-align en-es http://en.wikipedia.org/wiki/Antiparticle http://es.wikipedia.org/wiki/Antipart%C3%ADcula
 
-Yalign is not limited to any one language pair. By creating your own models you can align any two languages. For more details on how to use yalign and on yalign's implementation please `read the docs <http://quepy.readthedocs.org/>`_.
+Yalign is not limited to any one language pair. By creating your own models you can align any two languages. For more details on how to use yalign and on yalign's implementation please `read the docs <http://yalign.readthedocs.org/>`_.
 
 Yalign is a `Machinalis <http://www.machinalis.com>`_ project.
 You can view our other open source contributions `here <https://github.com/machinalis/>`_.
