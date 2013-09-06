@@ -28,5 +28,5 @@ if __name__ == "__main__":
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    model = basic_model(corpus, dictionary, lang_a, lang_b, optimize=True)
+    model = basic_model(corpus, dictionary, lang_a, lang_b)
     model.save(output_folder)

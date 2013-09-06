@@ -23,8 +23,7 @@ RANDOM_SAMPLING_ITERATIONS = 20
 
 
 def basic_model(corpus_filepath, word_scores_filepath,
-                lang_a=None, lang_b=None, optimize=False,
-                gap_penalty=0.49, threshold=1):
+                lang_a=None, lang_b=None):
     """
     Creates and trains a `YalignModel` with the basic configuration and
     default values.
@@ -46,26 +45,22 @@ def basic_model(corpus_filepath, word_scores_filepath,
     # Word score
     word_pair_score = WordPairScore(word_scores_filepath)
 
-    if corpus_filepath.endswith(".csv"):
-        alignments = parse_training_file(corpus_filepath)
-        if optimize:
-            raise ValueError("Cannot optmize using a csv corpus!")
+    if corpus_filepath.endswith(".tmx"):
+        A, B = tmx_file_to_documents(corpus_filepath, lang_a, lang_b)
     else:
-        if corpus_filepath.endswith(".tmx"):
-            A, B = tmx_file_to_documents(corpus_filepath, lang_a, lang_b)
-        else:
-            A, B = parallel_corpus_to_documents(corpus_filepath)
-        alignments = training_alignments_from_documents(A, B)
+        A, B = parallel_corpus_to_documents(corpus_filepath)
+    alignments = training_alignments_from_documents(A, B)
 
     sentence_pair_score = SentencePairScore()
     sentence_pair_score.train(alignments, word_pair_score)
     # Yalign model
     metadata = {"lang_a": lang_a, "lang_b": lang_b}
+    gap_penalty = 0.49
+    threshold = 1.0
     document_aligner = SequenceAligner(sentence_pair_score, gap_penalty)
     model = YalignModel(document_aligner, threshold, metadata=metadata)
-    if optimize:
-        A, B, correct = training_scrambling_from_documents(A[:OPTIMIZE_SAMPLE_SET_SIZE], B[:OPTIMIZE_SAMPLE_SET_SIZE])
-        model.optimize_gap_penalty_and_threshold(A, B, correct)
+    A, B, correct = training_scrambling_from_documents(A[:OPTIMIZE_SAMPLE_SET_SIZE], B[:OPTIMIZE_SAMPLE_SET_SIZE])
+    model.optimize_gap_penalty_and_threshold(A, B, correct)
     return model
 
 

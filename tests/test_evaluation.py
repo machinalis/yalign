@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import random
 import tempfile
 import unittest
 import subprocess
@@ -58,9 +59,10 @@ class BaseTestPercentage(object):
     cmdline = None
 
     def setUp(self):
+        random.seed("Some seed")
         self.parallel_corpus = os.path.join(data_path, "canterville.txt")
         word_scores = os.path.join(data_path, "test_word_scores_big.csv")
-        training_filepath = os.path.join(data_path, "test_training.csv")
+        training_filepath = os.path.join(data_path, "corpus-en-es.tmx")
         self.model = yalignmodel.basic_model(training_filepath, word_scores)
         A, B = parallel_corpus_to_documents(self.parallel_corpus)
         self.document_a = A
@@ -114,12 +116,6 @@ class TestAlignmentPercentage(BaseTestPercentage, unittest.TestCase):
     @staticmethod
     def alignment_function(document_a, document_b, model):
         return alignment_percentage(document_a, document_b, model)
-
-    def test_alignment(self):
-        document_a = self.document_a
-        document_b = [self.document_b[0]]
-        p = self.alignment_function(document_a, document_b, self.model)
-        self.assertEqual(p, 50.0)
 
 
 class TestClassifierPrecision(unittest.TestCase):
