@@ -25,6 +25,24 @@ RANDOM_SAMPLING_ITERATIONS = 20
 def basic_model(corpus_filepath, word_scores_filepath,
                 lang_a=None, lang_b=None, optimize=False,
                 gap_penalty=0.49, threshold=1):
+    """
+    Creates and trains a `YalignModel` with the basic configuration and
+    default values.
+
+    `corpus_filepath` is the path to a parallel corpus used for training,
+    it can be:
+        - a csv file with two sentences and alignement information, or
+        - a tmx file with correct alignments (a regular parallel corpus), or
+        - a text file with interleaved sentences (one line in language A, the
+          next in language B)
+
+    `word_scores_filepath` is the path to a csv file (possibly gzipped) with
+    word dictionary data. (for ex. "house,casa,0.91").
+
+    `lang_a` and `lang_b` are requiered for the tokenizer in the case of a tmx
+    file. In the other cases is not necesary because it's assumed that the
+    words are already tokenized.
+    """
     # Word score
     word_pair_score = WordPairScore(word_scores_filepath)
 
