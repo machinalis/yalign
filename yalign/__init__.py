@@ -16,7 +16,7 @@ Examples of how to use the yalign API:
     from yalign import text_to_document
 
     english_text = \"""Virginia's eyes filled with tears and she hid her head in her hands.
-                       Don't you have somewhere to sleep?\"""
+                       The Duke rose and kissed his wife lovingly.\"""
 
     spanish_text = \"""¿No tiene ningún lugar donde pueda dormir?
                        Los ojos de Virginia se llenaron de lágrimas y óculto su rostro entre los manos.\"""
@@ -32,7 +32,7 @@ Examples of how to use the yalign API:
 
     english_html = \"""<html><body><p>
                        Virginia's eyes filled with tears and she hid her head in her hands.
-                       Don't you have somewhere to sleep?"
+                       The Duke rose and kissed his wife lovingly."
                        </p></body></html>\"""
 
     spanish_html = \"""<html><body><p>
@@ -52,7 +52,7 @@ Examples of how to use the yalign API:
     english_srt = \"""1\\n00:00:49,160 --> 00:00:50,992\\n
                       <i>Virginia's eyes filled with tears and she hid her head in her hands.</i>\\n\\n
                       2\\n00:00:51,734 --> 00:00:53,577\\n
-                      <i>Don't you have somewhere to sleep?</i>\"""
+                      <i>The Duke rose and kissed his wife lovingly.</i>\"""
 
     spanish_srt = \"""1\\n00:00:49,160 --> 00:00:50,992\\n
                       <i>¿No tiene ningún lugar donde pueda dormir?</i>\\n\\n
