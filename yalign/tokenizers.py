@@ -3,13 +3,13 @@
 Module providing tokenizers for various languages.
 """
 
-from nltk.tokenize import RegexpTokenizer  # FIXME: It's an overkill
+from nltk.tokenize import RegexpTokenizer, WordPunctTokenizer  # FIXME: It's an overkill
 import re
 
 ###
 ### Common section
 ###
-
+default_tokenizer = WordPunctTokenizer()
 
 basic_macros = {
     "AN1": "[a-z0-9]",
@@ -54,16 +54,14 @@ languages = {}
 def get_tokenizer(language):
     """
     Get a tokenizer for a two character language code.
-    Throws a ValueError if no tokenizer is available.
     """
-    try:
+    tokenizer = default_tokenizer
+    if language in languages:
         regex = languages[language]
-    except KeyError:
-        raise ValueError("Tokenizer not implemented for {!r}".format(language))
-    regex = [x.format(**macros) for x in regex]
-    regex = u"|".join(regex)
-    return RegexpTokenizer(regex,
-                            flags=re.UNICODE | re.MULTILINE | re.DOTALL | re.I)
+        regex = [x.format(**macros) for x in regex]
+        regex = u"|".join(regex)
+        tokenizer = RegexpTokenizer(regex, flags=re.UNICODE | re.MULTILINE | re.DOTALL | re.I)
+    return tokenizer
 
 
 ###
