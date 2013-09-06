@@ -12,7 +12,7 @@ from yalign.evaluation import F_score
 from yalign.wordpairscore import WordPairScore
 from yalign.sequencealigner import SequenceAligner
 from yalign.sentencepairscore import SentencePairScore
-from yalign.input_conversion import parse_training_file, tmx_file_to_documents, \
+from yalign.input_conversion import tmx_file_to_documents, \
     parallel_corpus_to_documents
 from yalign.train_data_generation import training_alignments_from_documents, \
                                          training_scrambling_from_documents
@@ -65,14 +65,44 @@ def basic_model(corpus_filepath, word_scores_filepath,
 
 
 class YalignModel(object):
+    """
+    Main Yalign class.
+    It provides methods to train a alignment model, to load a model from a
+    folder and to align two documents.
+    """
     def __init__(self, document_pair_aligner=None,
                        threshold=None, metadata=None):
+        """
+        Barebones instantiation method. If no argument is supplied the instance
+        created is not suited to align documents.
+
+        To train, you better check `basic_model` first. To use an existing
+        model better check `YalignModel.load` first.
+
+        `document_pair_aligner` is a `SequenceAligner` instance capable of
+        aligning `Sentence`s.
+
+        `threshold` is a number such that only `Sentence`s scoring lower
+        than this number (lower is better) are returned by `align`.
+
+        `metadata` is a `dict` that can be used to store any data that the
+        user of `YalignModel` considers useful (for instance the languages
+        that the model accepts). Metadata will be also saved as a json file
+        along with the model serialization, allowing faster retrieval of
+        metadata (because is no necesary to load the whole model) for any other
+        user software.
+
+        """
         self.document_pair_aligner = document_pair_aligner
         self.threshold = threshold
         self.metadata = MetadataHelper(metadata)
 
     @classmethod
     def load(cls, model_directory):
+        """
+        This method to loads an existing YalignModel from the path to the
+        folder where it's contained.
+        """
         model = cls()
         metadata = os.path.join(model_directory, "metadata.json")
         aligner = os.path.join(model_directory, "aligner.pickle")
@@ -91,21 +121,25 @@ class YalignModel(object):
         return self.sentence_pair_score.word_pair_score
 
     def align(self, document_a, document_b):
-        alignments = self.align_indexes(document_a, document_b)
-        return [(document_a[a], document_b[b]) for a, b in alignments]
-
-    def align_indexes(self, document_a, document_b):
         """
-        Try to recover aligned sentences from the comparable documents
+        Try to detect aligned sentences from the comparable documents
         `document_a` and `document_b`.
         The returned alignments are expected to meet the F-measure for which
         the model was trained for.
         """
+        alignments = self.align_indexes(document_a, document_b)
+        return [(document_a[a], document_b[b]) for a, b in alignments]
+
+    def align_indexes(self, document_a, document_b):
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
         return apply_threshold(alignments, self.threshold)
 
     def save(self, model_directory):
+        """
+        Store a serialization of a YalignModel instance in a given folder.
+        Metadata is stored in a separate file.
+        """
         metadata = os.path.join(model_directory, "metadata.json")
         aligner = os.path.join(model_directory, "aligner.pickle")
         pickle.dump(self.document_pair_aligner, open(aligner, "w"))
@@ -115,6 +149,16 @@ class YalignModel(object):
 
     def optimize_gap_penalty_and_threshold(self, document_a, document_b,
                                                               real_alignments):
+        """
+        Given documents `document_a` and `document_b` (not necesarily aligned)
+        and the `real_alignments` for that documents train the YalignModel
+        instance to maximize the target F-measure (the quality measure).
+
+        `real_alignments` is a list of indexes (i, j) of `document_a` and
+        `document_b` respectively indicating that those sentences are aligned.
+        Pairs not included in `real_alignments` are assumed to be wrong
+        alignments.
+        """
         def F(x):
             return score_with_best_threshold(self.document_pair_aligner,
                                              document_a, document_b,
