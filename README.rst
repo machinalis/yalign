@@ -1,5 +1,3 @@
-**Note: Work in progress**
-
 About
 =====
 
