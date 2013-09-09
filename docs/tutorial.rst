@@ -70,6 +70,14 @@ We can now use this model to align english and spanish documents.
 Align Two Documents
 -------------------
 
+An important part of sentence alignment is making sure that sentences are properly split. To accomplish this Yalign uses
+the nltk `nltk punkt module <http://nltk.org/api/nltk.tokenize.html>`_ for sentence splitting in various languages. 
+If you do not have these sentence splitters installed you can install them from the command line with:
+
+::
+    
+    python -m nltk.downloader -q punkt
+
 To perform an alignment we use the **yalign-align** script. 
 
 The script takes a model folder (en-es) and the documents (urls or plantext files) to align as input. The results of the alignment are then written to stdout.
