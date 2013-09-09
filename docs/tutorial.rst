@@ -71,7 +71,7 @@ Align Two Documents
 -------------------
 
 An important part of sentence alignment is making sure that sentences are properly split. To accomplish this Yalign uses
-the nltk `nltk punkt module <http://nltk.org/api/nltk.tokenize.html>`_ for sentence splitting in various languages. 
+the `nltk punkt module <http://nltk.org/api/nltk.tokenize.html>`_ for sentence splitting in various languages. 
 If you do not have these sentence splitters installed you can install them from the command line with:
 
 ::
