@@ -41,8 +41,8 @@ You can view our other open source contributions `here <https://github.com/machi
 
 **The Yalign Team:**
 
-| Laura Alonso Alemany
-| Elías Andrawos
-| Rafael Carrascosa
-| Gonzalo García Berrotarán
 | Andrew Vine
+| Gonzalo García Berrotarán
+| Rafael Carrascosa
+| Elías Andrawos
+| Laura Alonso Alemany

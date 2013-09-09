@@ -131,6 +131,10 @@ class YalignModel(object):
         return [(document_a[a], document_b[b]) for a, b in alignments]
 
     def align_indexes(self, document_a, document_b):
+        """
+        Same as `align` but returning indexes in documents instead of
+        sentences.
+        """
         alignments = self.document_pair_aligner(document_a, document_b)
         alignments = pre_filter_alignments(alignments)
         return apply_threshold(alignments, self.threshold)
