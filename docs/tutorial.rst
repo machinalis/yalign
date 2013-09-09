@@ -36,8 +36,7 @@ Training a model requires two inputs:
 
     The second requirement for training is an existing parallel corpus. 
     
-    An english to spanish corpus (corpora.en-es) is provided in the tutorial folder. 
-    The format of this corpus is plaintext but tmx is also accepted.
+    An english to spanish corpus (corpora.en-es) is provided in the tutorial folder. This corpus is taken from the europarl corpus provided by `RANLP5`_. The format of this corpus is plaintext but tmx is also accepted.
     
     .. Note::
 
@@ -82,4 +81,8 @@ Let's align an english and spanish wikipedia page using our new model.
     yalign-align -a en -b es en-es http://en.wikipedia.org/wiki/Antiparticle http://es.wikipedia.org/wiki/Antipart%C3%ADcula
 
 And that's it. You have successfully created your first alignment model! 
+
 These same steps can be followed to create models in other languages.
+
+
+.. [RANLP5]  Jörg Tiedemann, 2009, `News from OPUS - A Collection of Multilingual Parallel Corpora with Tools and Interfaces <http://stp.lingfil.uu.se/~joerg/published/ranlp-V.pdf>`_. In N. Nicolov and K. Bontcheva and G. Angelova and R. Mitkov (eds.) Recent Advances in Natural Language Processing (vol V), pages 237-248, John Benjamins, Amsterdam/Philadelphia

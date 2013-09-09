@@ -200,7 +200,7 @@ def tmx_file_to_documents(filepath, lang_a=None, lang_b=None):
             document_a.append(sentences[lang_a])
             document_b.append(sentences[lang_b])
     except XMLSyntaxError as error:
-    # FIXME: bug in lxml (see https://bugs.launchpad.net/lxml/+bug/1185701)
+    #bug in lxml (see https://bugs.launchpad.net/lxml/+bug/1185701)
         if error.text is not None:
             raise
 

@@ -11,7 +11,6 @@ def _is_tokenized(word):
     Note: if this functions returns True doesn't mean is really tokenized, but
     if returns False you know it's not tokenized propperly.
     """
-    # FIXME: add harder checks
     return not ((word.endswith(".") or word.endswith(",")) and
                 word[:-1].isalpha())
 
