@@ -45,7 +45,7 @@ def tokenize(text, language="en"):
     """
     if not isinstance(text, unicode):
         raise ValueError("Can only tokenize unicode strings")
-    return Sentence(_tokenizers[language].tokenize(text))
+    return Sentence(_tokenizers[language].tokenize(text), text=text)
 
 
 def text_to_document(text, language="en"):

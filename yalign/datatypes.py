@@ -16,10 +16,8 @@ def _is_tokenized(word):
 
 
 class Sentence(list):
-    """
-    Represents a sentence. Really is just a list of words.
-    """
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, text=None):
+        self.text = text
         if iterable is not None:
             super(Sentence, self).__init__(iterable)
         else:
@@ -32,7 +30,7 @@ class Sentence(list):
                 raise ValueError(message.format(word))
 
     def to_text(self):
-        return ' '.join(self).encode('utf-8')
+        return self.text.encode('utf-8') if self.text else ' '.join(self).encode('utf-8')
 
 
 class SentencePair(list):
