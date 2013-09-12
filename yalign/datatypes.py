@@ -30,7 +30,12 @@ class Sentence(list):
                 raise ValueError(message.format(word))
 
     def to_text(self):
-        return self.text.encode('utf-8') if self.text else ' '.join(self).encode('utf-8')
+        text = self.text
+        if text:
+            text = text.replace('\n', '').strip()
+        else:
+            text = ' '.join(self)
+        return text.encode('utf-8')
 
 
 class SentencePair(list):
