@@ -16,6 +16,7 @@ from nltk.data import load as nltkload
 from yalign.tokenizers import get_tokenizer
 from yalign.datatypes import Sentence, SentencePair
 from yalign.utils import Memoized
+from xml.sax.saxutils import unescape
 
 SRT_REGEX = "\d+\n[\d:,]+?\s*-->\s*[\d:,]+?\n(.+?)(:?\n\n|$)"
 SRT_REGEX = re.compile(SRT_REGEX.replace("\n", "(?:\n|\r\n)"), re.DOTALL)
@@ -27,16 +28,27 @@ MIN_LINES = 20
 MAX_LINES = 20
 XMLNS = "{http://www.w3.org/XML/1998/namespace}"
 STRIP_TAGS_REGEXP = re.compile("(>)(.*)(<)", re.DOTALL)
-
-_punkt = {
-    "en": "tokenizers/punkt/english.pickle",
-    "es": "tokenizers/punkt/spanish.pickle",
-    "pt": "tokenizers/punkt/portuguese.pickle"
+CODES_TO_LANGUAGE = {
+    "cs": "czech",
+    "da": "danish",
+    "de": "german",
+    "el": "greek",
+    "en": "english",
+    "es": "spanish",
+    "et": "estonian",
+    "fi": "finnish",
+    "fr": "french",
+    "it": "italian",
+    "nb": "norwegian",
+    "pl": "polish",
+    "pt": "portuguese",
+    "nl": "dutch",
+    "sv": "swedish",
+    "tr": "turkish",
 }
 
-
 _tokenizers = Memoized(lambda lang: get_tokenizer(lang))
-_sentence_splitters = Memoized(lambda lang: nltkload(_punkt[lang]))
+_sentence_splitters = Memoized(lambda lang: nltkload("tokenizers/punkt/%s.pickle" % CODES_TO_LANGUAGE[lang]))
 
 
 def tokenize(text, language="en"):
@@ -155,7 +167,7 @@ def _language_from_node(node):
 
 
 def _node_to_sentence(node):
-    text = etree.tostring(node)
+    text = etree.tostring(node, encoding='utf-8')
     match = re.search(STRIP_TAGS_REGEXP, text)
     text = match.group(2) if match else u""
     text = text.replace("\n", " ")
