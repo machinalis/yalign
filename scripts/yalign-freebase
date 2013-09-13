@@ -65,7 +65,7 @@ def split_line(line):
     return code, text[text.index('"') + 1:-1].decode('string_escape')
 
 
-def documents(file_a, file_b):
+def documents(file_a, file_b, lang_a, lang_b):
     code_b = ''
     cnt = 0
     doc_cnt = 0
@@ -85,8 +85,8 @@ def documents(file_a, file_b):
 
         if code_b == code_a and not None in (text_a, text_b):
             doc_cnt += 1
-            A = text_to_document(text_a, "en")
-            B = text_to_document(text_b, "es")
+            A = text_to_document(text_a, lang_a)
+            B = text_to_document(text_b, lang_b)
             yield A, B
 
 if __name__ == "__main__":
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     file_a = open(args['<document_a>'])
     file_b = open(args['<document_b>'])
     model = YalignModel.load(model_path)
-    for A, B in documents(file_a, file_b):
+    for A, B in documents(file_a, file_b, lang_a, lang_b):
         pairs = model.align(A, B)
         if output_format == "tmx":
             write_tmx(stdout, pairs, lang_a, lang_b)
