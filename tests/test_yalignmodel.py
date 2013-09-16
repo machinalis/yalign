@@ -24,8 +24,8 @@ class TestYalignModel(unittest.TestCase):
         word_scores = os.path.join(base_path, "data", "test_word_scores_big.csv")
         parallel_corpus = os.path.join(base_path, "data", "parallel-en-es.txt")
         A, B = parallel_corpus_to_documents(parallel_corpus)
-        A = A[:15]
-        B = B[:15]
+        A = A[:25]
+        B = B[:25]
         self.alignments = list(training_alignments_from_documents(A, B))
         self.A, self.B, self.correct_alignments = \
                                  list(training_scrambling_from_documents(A, B))
