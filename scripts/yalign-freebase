@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+"""
+To create freebase docs:
+eg: for english..
+gzip -dc freebase.gz | grep common.topic.description | grep @en > tmp
+LC_COLLATE=C sort tmp > freebase.en
+
+Inputs:
+    model_folder: The directory where a trained model is kept.
+    document_a, document_b: The freebase documents.
+
+Output:
+    The output is written to stdout. View the -f option for supported output formats.
+
+Usage:
+    yalign-freebase [options] <model_folder> <document_a> <document_b>
+
+Options:
+  -a --lang-a=<language>                The language of the document A [default: en]
+  -b --lang-b=<language>                The language of the document B [default: es]
+  -f --output-format=<output-format>    The output format options are plaintext and tmx [default: plaintext]
+                                        The plaintext output consists of alternating sentences in the target
+                                        languages.
+  -h --help                             Show this screen.
+"""
+
+import os
+import re
+
+import nltk
+
+from docopt import docopt
+from yalign.yalignmodel import YalignModel
+from yalign.input_conversion import text_to_document
+from yalign.utils import write_tmx
+
+
+from sys import stdout, stderr
+
+
+code_pattern = re.compile('ns:m\.[^\s]*')
+text_pattern = re.compile('\s".*"')
+
+
+def write_plaintext(stream, pairs):
+    for a, b in pairs:
+        stream.write(a.to_text())
+        stream.write('\n')
+        stream.write(b.to_text())
+        stream.write('\n')
+    stream.flush()
+
+
+def split_line(line):
+    try:
+        m = re.match(code_pattern, line)
+        code = m.group(0)
+        m = re.search(text_pattern, line)
+        text = m.group(0)
+    except AttributeError:
+        stderr.write("Error:%s\n" % line)
+        return None, None
+    return code, text[text.index('"') + 1:-1].decode('string_escape')
+
+
+def documents(file_a, file_b, lang_a, lang_b):
+    code_b = ''
+    cnt = 0
+    doc_cnt = 0
+    for line_a in file_a:
+        cnt += 1
+        str_1, str_2 = split_line(line_a)
+        if not None in (str_1, str_2):
+            code_a, text_a = str_1, str_2
+
+        while code_b < code_a:
+            str_1, str_2 = split_line(file_b.readline())
+            if not None in (str_1, str_2):
+                code_b, text_b = str_1, str_2
+
+        if cnt % 1000 == 0:
+            stderr.write("matches[%d] compares[%d] %s %s\n" % (doc_cnt, cnt, code_a, code_b))
+
+        if code_b == code_a and not None in (text_a, text_b):
+            doc_cnt += 1
+            A = text_to_document(text_a, lang_a)
+            B = text_to_document(text_b, lang_b)
+            yield A, B
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    output_format = args['--output-format'].lower()
+    lang_a = args['--lang-a']
+    lang_b = args['--lang-b']
+    model_path = os.path.abspath(args['<model_folder>'])
+    nltk.data.path += [model_path]
+    file_a = open(args['<document_a>'])
+    file_b = open(args['<document_b>'])
+    model = YalignModel.load(model_path)
+    for A, B in documents(file_a, file_b, lang_a, lang_b):
+        pairs = model.align(A, B)
+        if output_format == "tmx":
+            write_tmx(stdout, pairs, lang_a, lang_b)
+        else:
+            write_plaintext(stdout, pairs)
