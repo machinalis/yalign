@@ -14,7 +14,7 @@ requirements = open(requirements_path).read().splitlines()
 
 setup(
     name="yalign",
-    version="0.1",
+    version="0.1.1",
     description="A tool to align comparable corpora",
     long_description=long_description,
     author="Rafael Carrascosa, Gonzalo Garcia Berrotaran, Andrew Vine",
