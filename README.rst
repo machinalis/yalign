@@ -34,10 +34,17 @@ Now we can use the **yalign-align** script along with the english to spanish mod
 
 Yalign is not limited to any one language pair. By creating your own models you can align any two languages. For more details on how to use yalign and on yalign's implementation please `read the docs <http://yalign.readthedocs.org/>`_.
 
-Yalign is a `Machinalis <http://www.machinalis.com>`_ project.
-You can view our other open source contributions `here <https://github.com/machinalis/>`_.
+
+Demo
+====
+
+See **yalign** in action `right here <http://yalign.machinalis.com/demo>`_.
+
 
 **The Yalign Team:**
+
+Yalign is a `Machinalis <http://www.machinalis.com>`_ project.
+You can view our other open source contributions `here <https://github.com/machinalis/>`_.
 
 | Andrew Vine
 | Gonzalo García Berrotarán

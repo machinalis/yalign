@@ -39,7 +39,15 @@ Now we can use the **yalign-align** script along with the english to spanish mod
 
 Yalign is not limited to any one language pair. By creating your own models you can align any two languages. 
 
-**Contents:**
+
+Demo
+====
+
+See **yalign** in action `right here <http://yalign.machinalis.com/demo>`_.
+
+
+Contents:
+=========
 
 .. toctree::
    :maxdepth: 2
