@@ -51,7 +51,8 @@ class WordPairScore(ScoreFunction):
             word_a = word_a.lower()
             set_a.add(word_a)
             if word_a in self.translations:
-                values.update(self.translations[word_a])
+                for w, v in self.translations[word_a].iteritems():
+                    values[w] = max(v, values.get(w, 0.0))
         for word_b in sentence_b:
             word_b = word_b.lower()
             if word_b in values:
