@@ -176,30 +176,30 @@ english_contractions = [
  "you're",
  "you've"]
 
-languages["en"] = HEADER + [
-    "[01]?[0-9][-/.][0123]?[0-9][-/.][0-9]{{2,4}}",    # Date mm/dd/yyyy
-    "|".join(english_contractions),                    # Common contractions
-    "'s",                                              # Possesive
-    "\w+([_-]\w+)+",                                   # Normal words+compounds
-] + FOOTER
+# languages["en"] = HEADER + [
+#     "[01]?[0-9][-/.][0123]?[0-9][-/.][0-9]{{2,4}}",    # Date mm/dd/yyyy
+#     "|".join(english_contractions),                    # Common contractions
+#     "'s",                                              # Possesive
+#     "\w+([_-]\w+)+",                                   # Normal words+compounds
+# ] + FOOTER
 
 
 ###
 ### Spanish
 ###
 
-languages["es"] = HEADER + [
-    "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
-    u"¡¿",                                             # Extra punctuation mark
-] + FOOTER
+# languages["es"] = HEADER + [
+#     "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
+#     u"¡¿",                                             # Extra punctuation mark
+# ] + FOOTER
 
 
 ###
 ### Portuguese
 ###
 
-languages["pt"] = HEADER + [
-    "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
-    u"¡¿",                                             # Extra punctuation mark
-    "\w+(-\w+)+",                                      # Compound words
-] + FOOTER
+# languages["pt"] = HEADER + [
+#     "[0123]?[0-9][-/.][01]?[0-9][-/.][0-9]{{2,4}}",    # Date dd/mm/yyyy
+#     u"¡¿",                                             # Extra punctuation mark
+#     "\w+(-\w+)+",                                      # Compound words
+# ] + FOOTER
