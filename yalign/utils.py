@@ -19,12 +19,9 @@ def host_and_page(url):
 
 def read_from_url(url):
     """ GET this `url` and read the response. """
-    import httplib
-    host, page = host_and_page(url)
-    conn = httplib.HTTPConnection(host)
-    conn.request("GET", page)
-    response = conn.getresponse()
-    return response.read()
+    import requests
+    response = requests.get(url)
+    return response.text
 
 
 def write_tmx(stream, sentence_pairs, language_a, language_b):
