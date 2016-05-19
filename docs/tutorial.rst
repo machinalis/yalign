@@ -7,7 +7,7 @@ To follow along in this tutorial you will need to download and unpack the tutori
 
     ::
 
-        wget http://yalign.machinalis.com/tutorial.tar.gz
+        wget https://raw.githubusercontent.com/machinalis/yalign/develop/data/tutorial.tar.gz
         tar -xvzf tutorial.tar.gz
 
 You should now have tutorial folder with two files: **dictionary.csv** and **corpus.en-es**. These two files will be explained shortly. 
